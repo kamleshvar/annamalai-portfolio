@@ -1,0 +1,128 @@
+{% extends "admin/base.html" %}
+{% from "macros/ui.html" import icon %}
+{% from "admin/_macros.html" import field, textarea, form_feedback, confirm_form, move_form, move_down_form, empty_state %}
+
+{% block page_title %}{{ category.name }}{% endblock %}
+
+{% block content %}
+<header class="admin-page-head">
+  <div>
+    <span class="admin-kicker">GALLERY CHANNEL / {{ category.slug|upper }}</span>
+    <h1>{{ category.name|upper }}<span aria-hidden="true">.</span></h1>
+    <p>Manage this channel’s photographs and captions. Changes appear in the public gallery immediately.</p>
+  </div>
+  <div class="admin-page-actions">
+    <a class="admin-btn admin-btn--ghost" href="{{ url_for('admin.gallery') }}">{{ icon('arrow-left') }}<span>BACK TO GALLERY</span></a>
+    <a class="admin-btn admin-btn--primary" href="{{ url_for('main.index') }}#gallery" target="_blank" rel="noopener">{{ icon('external-link') }}<span>VIEW PUBLIC GALLERY</span></a>
+  </div>
+</header>
+
+<div class="admin-index-bar">
+  <span><i class="admin-live-dot"></i> {{ images|length }} FRAME{{ '' if images|length == 1 else 'S' }}</span>
+  <span>SORT / {{ category.sort_order }}</span>
+  <span>CHANNEL / {{ category.slug }}</span>
+</div>
+
+<div class="admin-category-layout">
+  <section class="admin-card" aria-labelledby="upload-title">
+    <header class="admin-card__head">
+      <div>
+        <span class="admin-kicker">UPLOAD</span>
+        <h2 id="upload-title">ADD PHOTOGRAPHS</h2>
+      </div>
+      <span class="admin-pill admin-pill--online"><i class="admin-live-dot"></i> READY</span>
+    </header>
+    <form action="{{ url_for('admin.gallery_upload', category_id=category.id) }}" method="post" enctype="multipart/form-data" class="admin-upload-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <label for="gallery-images" class="admin-upload-drop">
+        {{ icon('image-plus') }}
+        <strong>SELECT OR DROP PHOTOGRAPHS</strong>
+        <span>JPG, JPEG, PNG or WEBP — up to {{ config.MAX_IMAGES_PER_UPLOAD }} per upload</span>
+        <input id="gallery-images" type="file" name="images" accept="image/jpeg,image/jpg,image/png,image/webp" multiple required>
+        <span class="admin-upload-selection" data-upload-selection hidden></span>
+      </label>
+      <div class="admin-upload-form__foot">
+        <p>Files are verified as real images, resized above 2600px, and stored outside the public static folder.</p>
+        <button class="admin-btn admin-btn--primary" type="submit">{{ icon('upload') }} UPLOAD FRAMES</button>
+      </div>
+    </form>
+  </section>
+
+  <aside class="admin-card">
+    <header class="admin-card__head">
+      <div>
+        <span class="admin-kicker">CHANNEL SETTINGS</span>
+        <h2>EDIT CATEGORY</h2>
+      </div>
+      {{ icon('settings-2') }}
+    </header>
+    {{ form_feedback(category_form) }}
+    <form action="{{ url_for('admin.gallery_category_edit', category_id=category.id) }}" method="post" class="admin-stack-form" novalidate>
+      {{ category_form.hidden_tag() }}
+      {{ field(category_form.name, 'CATEGORY NAME') }}
+      {{ textarea(category_form.description, 'DESCRIPTION', rows=4) }}
+      {{ field(category_form.sort_order, 'SORT ORDER', hint='Lower numbers appear first in the gallery filter.') }}
+      <button type="submit" class="admin-btn admin-btn--primary admin-btn--block">{{ icon('save') }} SAVE CHANNEL</button>
+    </form>
+    <div class="admin-danger-zone">
+      <span class="admin-kicker">DANGER ZONE</span>
+      <p>Deleting this channel removes all {{ images|length }} photograph(s) stored inside it.</p>
+      {{ confirm_form(url_for('admin.gallery_category_delete', category_id=category.id), 'Delete the gallery category “' ~ category.name ~ '” and all ' ~ images|length ~ ' photograph(s)? This cannot be undone.', 'DELETE CHANNEL') }}
+    </div>
+  </aside>
+</div>
+
+{% if images %}
+<section class="admin-card admin-screenshot-register" aria-labelledby="frames-title">
+  <header class="admin-card__head">
+    <div>
+      <span class="admin-kicker">VISUAL REGISTER</span>
+      <h2 id="frames-title">FRAMES IN THIS CHANNEL</h2>
+    </div>
+    <span class="admin-pill admin-pill--online">{{ images|length }} FRAMES</span>
+  </header>
+  <div class="admin-image-grid">
+    {% for image in images %}
+    <article class="admin-image-card">
+      <div class="admin-image-card__media">
+        <img src="{{ url_for('main.uploaded_file', filename=image.filename) }}" alt="{{ image.caption or category.name ~ ' photograph ' ~ loop.index }}" loading="lazy" decoding="async">
+        <span class="admin-image-card__index">{{ "%02d"|format(loop.index) }}</span>
+      </div>
+      <div class="admin-image-card__body">
+        <span class="admin-kicker">{{ image.width }} × {{ image.height }} / {{ image.filename.split('/')[-1] }}</span>
+        {% if image.caption %}<strong>{{ image.caption }}</strong>{% else %}<strong class="admin-muted">NO CAPTION</strong>{% endif %}
+        <details class="admin-image-details">
+          <summary>EDIT FRAME RECORD {{ icon('chevron-down') }}</summary>
+          <form action="{{ url_for('admin.gallery_image_update', image_id=image.id) }}" method="post" class="admin-stack-form" novalidate>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="admin-field">
+              <label for="caption-{{ image.id }}">CAPTION</label>
+              <input id="caption-{{ image.id }}" name="caption" value="{{ image.caption or '' }}" maxlength="250" class="admin-input" placeholder="Short caption">
+            </div>
+            <div class="admin-field">
+              <label for="description-{{ image.id }}">DESCRIPTION</label>
+              <textarea id="description-{{ image.id }}" name="description" rows="4" maxlength="2000" class="admin-input admin-textarea" placeholder="Longer field note for the lightbox.">{{ image.description or '' }}</textarea>
+            </div>
+            <div class="admin-field">
+              <label for="sort-{{ image.id }}">SORT ORDER</label>
+              <input id="sort-{{ image.id }}" name="sort_order" type="number" min="0" max="9999" value="{{ image.sort_order }}" class="admin-input">
+            </div>
+            <button type="submit" class="admin-btn admin-btn--primary admin-btn--sm">{{ icon('save') }} SAVE FRAME</button>
+          </form>
+        </details>
+        <div class="admin-image-card__actions">
+          <div class="admin-move-group" aria-label="Reorder frame {{ loop.index }}">
+            {{ move_form(url_for('admin.gallery_image_move', image_id=image.id, direction='up'), 'Move frame up', loop.first) }}
+            {{ move_down_form(url_for('admin.gallery_image_move', image_id=image.id, direction='down'), 'Move frame down', loop.last) }}
+          </div>
+          {{ confirm_form(url_for('admin.gallery_image_delete', image_id=image.id), 'Delete frame ' ~ loop.index ~ ' from “' ~ category.name ~ '”? The saved image file will be deleted.', 'REMOVE') }}
+        </div>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+{% else %}
+{{ empty_state('THIS CHANNEL IS EMPTY.', 'Upload real photographs above. The public gallery will show a calibrated empty state until frames exist.', None, None, 'images') }}
+{% endif %}
+{% endblock %}

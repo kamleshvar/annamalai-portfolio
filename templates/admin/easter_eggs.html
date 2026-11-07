@@ -1,0 +1,105 @@
+{% extends "admin/base.html" %}
+{% from "macros/ui.html" import icon %}
+{% from "admin/_macros.html" import confirm_form, move_form, move_down_form, empty_state %}
+
+{% block page_title %}Easter Eggs{% endblock %}
+
+{% block content %}
+<header class="admin-page-head">
+  <div>
+    <span class="admin-kicker">HIDDEN RECORDS / {{ "%02d"|format(easter_eggs|length) }}</span>
+    <h1>EASTER EGGS<span aria-hidden="true">.</span></h1>
+    <p>Hidden messages surfaced by artifact scans, floating document nodes, the control system and the secret terminal.</p>
+  </div>
+  <div class="admin-page-actions">
+    <a class="admin-btn admin-btn--ghost" href="{{ url_for('main.index') }}" target="_blank" rel="noopener">{{ icon('external-link') }}<span>SEARCH THE ARCHIVE</span></a>
+    <a class="admin-btn admin-btn--primary" href="{{ url_for('admin.easter_egg_new') }}">{{ icon('plus') }}<span>NEW HIDDEN RECORD</span></a>
+  </div>
+</header>
+
+<div class="admin-index-bar">
+  <span><i class="admin-live-dot"></i> {{ easter_eggs|selectattr('enabled')|list|length }} LIVE</span>
+  <span>{{ easter_eggs|rejectattr('enabled')|list|length }} SEALED</span>
+  <span>ACCESS FRAGMENTS / {{ access_fragment_count }} OF 04</span>
+  <span>TEMPAD / CTRL + SHIFT + A</span>
+</div>
+
+<div class="admin-egg-layout">
+  <div class="admin-egg-main">
+    {% if easter_eggs %}
+    <div class="admin-record-list">
+      {% for egg in easter_eggs %}
+      <article class="admin-record{% if not egg.enabled %} is-muted{% endif %}">
+        <span class="admin-record__order">{{ "%02d"|format(loop.index) }}</span>
+        <div class="admin-record__media admin-record__media--egg">
+          {% if egg.interaction_type == 'artifact' %}{{ icon('gem') }}
+          {% elif egg.interaction_type == 'terminal' %}{{ icon('terminal') }}
+          {% elif egg.interaction_type == 'document' %}{{ icon('file-text') }}
+          {% else %}{{ icon('sparkles') }}{% endif %}
+        </div>
+        <div class="admin-record__body">
+          <span class="admin-kicker">KEY / {{ egg.key }} / {{ egg.section|upper }}</span>
+          <h2>{{ egg.title }}</h2>
+          <div class="admin-record__meta">
+            <span class="admin-pill admin-pill--type">{{ egg.interaction_type|upper }}</span>
+            {% if egg.access_slot %}<span class="admin-pill admin-pill--online">FRAGMENT {{ "%02d"|format(egg.access_slot) }} / {{ egg.access_code }}</span>{% endif %}
+            <span>SORT / {{ egg.sort_order }}</span>
+            <span class="admin-pill {% if egg.enabled %}admin-pill--online{% else %}admin-pill--muted{% endif %}">{{ 'LIVE' if egg.enabled else 'SEALED' }}</span>
+          </div>
+          <p>{{ egg.message|truncate(190, True, '…') }}</p>
+        </div>
+        <div class="admin-record__actions">
+          <div class="admin-move-group" aria-label="Reorder {{ egg.title }}">
+            {{ move_form(url_for('admin.easter_egg_move', egg_id=egg.id, direction='up'), 'Move ' ~ egg.title ~ ' up', loop.first) }}
+            {{ move_down_form(url_for('admin.easter_egg_move', egg_id=egg.id, direction='down'), 'Move ' ~ egg.title ~ ' down', loop.last) }}
+          </div>
+          <form action="{{ url_for('admin.easter_egg_toggle', egg_id=egg.id) }}" method="post" class="admin-inline-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="admin-btn admin-btn--ghost admin-btn--sm">{{ icon('power') }} {{ 'SEAL' if egg.enabled else 'UNSEAL' }}</button>
+          </form>
+          <a class="admin-btn admin-btn--ghost admin-btn--sm" href="{{ url_for('admin.easter_egg_edit', egg_id=egg.id) }}">{{ icon('pencil') }} EDIT</a>
+          {{ confirm_form(url_for('admin.easter_egg_delete', egg_id=egg.id), 'Delete the hidden record “' ~ egg.title ~ '”? This cannot be undone.', 'DELETE') }}
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+    {% else %}
+    {{ empty_state('NO HIDDEN RECORDS.', 'The archive will keep its surfaces quiet until a hidden record is created.', url_for('admin.easter_egg_new'), 'CREATE HIDDEN RECORD', 'sparkles') }}
+    {% endif %}
+  </div>
+
+  <aside class="admin-egg-aside">
+    <section class="admin-card admin-card--help">
+      <span class="admin-card__icon">{{ icon('sparkles') }}</span>
+      <h2>HOW HIDDEN RECORDS WORK</h2>
+      <ul class="admin-help-list">
+        <li><strong>ARTIFACT</strong><span>The first enabled artifact record is opened by the hero artifact scan.</span></li>
+        <li><strong>TERMINAL</strong><span>A terminal record assigned to GLOBAL becomes the terminal handshake. Others appear in the control vault.</span></li>
+        <li><strong>DOCUMENT / HIDDEN</strong><span>These become floating archive nodes assigned to their section.</span></li>
+        <li><strong>ACCESS FRAGMENT</strong><span>Slots 1–4 publish codes. The control console opens only after every published code is submitted in the Tempad terminal.</span></li>
+      </ul>
+    </section>
+    <section class="admin-card">
+      <header class="admin-card__head">
+        <div>
+          <span class="admin-kicker">SECTION MAP</span>
+          <h2>NODE PLACEMENT</h2>
+        </div>
+      </header>
+      <div class="admin-section-map">
+        <span>HIDDEN / GLOBAL</span>
+        <span>ABOUT</span>
+        <span>ACHIEVEMENTS</span>
+        <span>TEAMS</span>
+        <span>PROJECTS</span>
+        <span>PEOPLE</span>
+        <span>GALLERY</span>
+        <span>CONTROL</span>
+        <span>CONTACT</span>
+        <span>FOOTER</span>
+      </div>
+      <p class="admin-note">{{ icon('info') }} Disabled records disappear from the public archive but remain stored here.</p>
+    </section>
+  </aside>
+</div>
+{% endblock %}

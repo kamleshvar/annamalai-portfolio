@@ -1,0 +1,86 @@
+{% extends "admin/base.html" %}
+{% from "macros/ui.html" import icon %}
+{% from "admin/_macros.html" import field, textarea, file_field, form_feedback %}
+
+{% block page_title %}{{ 'Edit Collaborator' if collaborator else 'New Collaborator' }}{% endblock %}
+
+{% block content %}
+<header class="admin-page-head">
+  <div>
+    <span class="admin-kicker">{{ 'EDIT RECORD / ' ~ collaborator.id if collaborator else 'NEW CONSTELLATION CONTACT' }}</span>
+    <h1>{{ 'EDIT COLLABORATOR' if collaborator else 'NEW COLLABORATOR' }}<span aria-hidden="true">.</span></h1>
+    <p>{{ 'Update this person’s public People record.' if collaborator else 'Add a real collaborator to the public constellation registry.' }}</p>
+  </div>
+  <div class="admin-page-actions">
+    <a class="admin-btn admin-btn--ghost" href="{{ url_for('admin.collaborators') }}">{{ icon('arrow-left') }}<span>BACK TO LIST</span></a>
+    <button class="admin-btn admin-btn--primary" type="submit" form="collaborator-form">{{ icon('save') }}<span>{{ 'SAVE CHANGES' if collaborator else 'CREATE CONTACT' }}</span></button>
+  </div>
+</header>
+
+{{ form_feedback(form) }}
+
+<form id="collaborator-form" class="admin-form-layout" method="post" enctype="multipart/form-data" novalidate>
+  {{ form.hidden_tag() }}
+
+  <div class="admin-form-main">
+    <fieldset class="admin-fieldset">
+      <legend><span>01</span> CONTACT IDENTITY</legend>
+      <div class="admin-form-grid">
+        {{ field(form.name, 'NAME', wide=True, placeholder='Full name') }}
+        {{ field(form.website, 'EXTERNAL COORDINATE', placeholder='https://...') }}
+        {{ field(form.sort_order, 'SORT ORDER', hint='Lower numbers appear first in People.', placeholder='0') }}
+      </div>
+    </fieldset>
+
+    <fieldset class="admin-fieldset">
+      <legend><span>02</span> ARCHIVE NOTE</legend>
+      <div class="admin-form-grid">
+        {{ textarea(form.description, 'DESCRIPTION', wide=True, rows=7, hint='Optional. Leave blank rather than inventing a biography or role.', placeholder='How this person connects to the work.') }}
+      </div>
+    </fieldset>
+
+    <fieldset class="admin-fieldset">
+      <legend><span>03</span> PORTRAIT</legend>
+      {{ file_field(form.photo, 'COLLABORATOR PHOTOGRAPH', current_url=url_for('main.uploaded_file', filename=collaborator.photo) if collaborator and collaborator.photo else None) }}
+      {% if collaborator and collaborator.photo %}
+      <button type="submit" form="photo-delete-form" class="admin-btn admin-btn--danger admin-btn--sm">{{ icon('trash-2') }} REMOVE PHOTOGRAPH</button>
+      {% endif %}
+      <p class="admin-note">{{ icon('info') }} If no photograph is uploaded, the public archive uses the person’s initials as a generated monogram.</p>
+    </fieldset>
+  </div>
+
+  <aside class="admin-form-aside">
+    <section class="admin-card admin-card--sticky">
+      <header class="admin-card__head">
+        <div>
+          <span class="admin-kicker">RECORD STATE</span>
+          <h2>{{ 'LIVE CONTACT' if collaborator else 'NOT YET CREATED' }}</h2>
+        </div>
+        {{ icon('users-round') }}
+      </header>
+      <dl class="admin-vitals">
+        <div><dt>PUBLIC SECTION</dt><dd>PEOPLE / 06</dd></div>
+        <div><dt>PORTRAIT</dt><dd>{{ 'ATTACHED' if collaborator and collaborator.photo else 'MONOGRAM FALLBACK' }}</dd></div>
+        <div><dt>EXTERNAL LINK</dt><dd>{{ 'CONFIGURED' if collaborator and collaborator.website else 'NOT SET' }}</dd></div>
+        <div><dt>SORT ORDER</dt><dd>{{ collaborator.sort_order if collaborator else 'NEW' }}</dd></div>
+      </dl>
+      {% if collaborator %}
+      <a class="admin-btn admin-btn--ghost admin-btn--block" href="{{ url_for('main.index') }}#people" target="_blank" rel="noopener">{{ icon('external-link') }} VIEW PUBLIC PEOPLE</a>
+      {% endif %}
+    </section>
+
+    <section class="admin-card admin-card--help">
+      <span class="admin-card__icon">{{ icon('users-round') }}</span>
+      <h2>PEOPLE, NOT PROPS</h2>
+      <p>Only add people who are genuinely connected to the work, and only publish a photograph with their permission.</p>
+      <p>Do not invent roles, descriptions or portraits to fill the grid.</p>
+    </section>
+  </aside>
+</form>
+
+{% if collaborator and collaborator.photo %}
+<form id="photo-delete-form" action="{{ url_for('admin.collaborator_photo_delete', collaborator_id=collaborator.id) }}" method="post" data-confirm="Remove the photograph for “{{ collaborator.name }}”? The saved image file will be deleted.">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+</form>
+{% endif %}
+{% endblock %}

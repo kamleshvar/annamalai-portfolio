@@ -1,0 +1,80 @@
+{% from "macros/ui.html" import icon, section_meta, expressive_title, egg_nodes %}
+<section class="section section--gallery" id="gallery" data-archive-section="gallery">
+  <div class="container">
+    {{ section_meta('07', 'VISUAL MEMORY ARCHIVE', 'FRAMES / ' ~ gallery_images|length) }}
+
+    <div class="section-heading-row">
+      <div data-reveal>
+        <h2 class="section-title">{{ expressive_title(site.gallery_heading) }}</h2>
+        <p class="section-intro">{{ site.gallery_intro }}</p>
+      </div>
+      <div class="gallery-stats" data-reveal>
+        <div><strong>{{ "%02d"|format(gallery_images|length) }}</strong><span>FRAMES</span></div>
+        <div><strong>{{ "%02d"|format(categories_with_images|length) }}</strong><span>CATEGORIES</span></div>
+        <span class="gallery-stats__status"><i class="status-dot"></i> ARCHIVE OPEN</span>
+      </div>
+    </div>
+
+    {% if gallery_images %}
+    <div class="gallery-filter" data-reveal role="group" aria-label="Filter gallery by category">
+      <button type="button" class="gallery-filter__button is-active" data-gallery-filter="all" aria-pressed="true">
+        ALL FRAMES <span>{{ "%02d"|format(gallery_images|length) }}</span>
+      </button>
+      {% for category in categories_with_images %}
+      <button type="button" class="gallery-filter__button" data-gallery-filter="{{ category.slug }}" aria-pressed="false">
+        {{ category.name }} <span>{{ "%02d"|format(category.images|length) }}</span>
+      </button>
+      {% endfor %}
+      <span class="gallery-filter__hint mono-label">SELECT A FREQUENCY</span>
+    </div>
+
+    <div class="gallery-masonry" id="gallery-masonry">
+      {% for category in categories_with_images %}
+        {% for image in category.images %}
+        <button type="button"
+                class="gallery-item"
+                data-gallery-item
+                data-gallery-category="{{ category.slug }}"
+                data-lightbox-trigger
+                data-full-src="{{ url_for('main.uploaded_file', filename=image.filename) }}"
+                data-caption="{{ image.caption or category.name }}"
+                data-description="{{ image.description }}"
+                data-category="{{ category.name }}"
+                aria-label="Open photograph: {{ image.caption or category.name }}">
+          <span class="gallery-item__frame">
+            <img src="{{ url_for('main.uploaded_file', filename=image.filename) }}"
+                 alt="{{ image.caption or category.name ~ ' photograph' }}"
+                 loading="lazy"
+                 decoding="async"
+                 {% if image.width and image.height %}width="{{ image.width }}" height="{{ image.height }}"{% endif %}>
+            <span class="gallery-item__scan" aria-hidden="true"></span>
+            <span class="gallery-item__corners" aria-hidden="true"></span>
+            <span class="gallery-item__overlay">
+              <span class="gallery-item__category mono-label">{{ category.name }} / {{ "%02d"|format(loop.index) }}</span>
+              {% if image.caption %}<span class="gallery-item__caption">{{ image.caption }}</span>{% endif %}
+              <span class="gallery-item__open">OPEN FRAME {{ icon('maximize-2') }}</span>
+            </span>
+          </span>
+        </button>
+        {% endfor %}
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="gallery-empty" data-reveal>
+      <div class="gallery-empty__frames" aria-hidden="true">
+        <span><i>01</i></span><span><i>02</i></span><span><i>03</i></span>
+      </div>
+      <div class="gallery-empty__copy">
+        <span class="mono-label">VISUAL ARCHIVE / CALIBRATING</span>
+        <h3>THE FRAMES ARE WAITING.</h3>
+        <p>The gallery is being catalogued. Personal photographs, milestones and fragments of memory will appear here as they are archived — no stock images, only real records.</p>
+        <span class="gallery-empty__meta mono-label">CATEGORIES READY: {% for category in categories %}{{ category.name }}{% if not loop.last %} / {% endif %}{% else %}—{% endfor %}</span>
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="section-float-zone">
+      {{ egg_nodes(eggs_by_section.get('gallery', [])) }}
+    </div>
+  </div>
+</section>

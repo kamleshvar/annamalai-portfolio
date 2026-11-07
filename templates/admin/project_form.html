@@ -1,0 +1,148 @@
+{% extends "admin/base.html" %}
+{% from "macros/ui.html" import icon %}
+{% from "admin/_macros.html" import field, textarea, file_field, checkbox, form_feedback, confirm_form, move_form, move_down_form %}
+
+{% block page_title %}{{ 'Edit Project' if project else 'New Project' }}{% endblock %}
+
+{% block content %}
+{% set screenshot_count = project.images|length if project else 0 %}
+<header class="admin-page-head">
+  <div>
+    <span class="admin-kicker">{{ 'EDIT OBJECT / ' ~ project.id if project else 'NEW ARCHIVE OBJECT' }}</span>
+    <h1>{{ 'EDIT PROJECT' if project else 'NEW PROJECT' }}<span aria-hidden="true">.</span></h1>
+    <p>{{ 'Update this project record, its screenshots and its public links.' if project else 'Create a project record. Only record features and screenshots that actually exist.' }}</p>
+  </div>
+  <div class="admin-page-actions">
+    <a class="admin-btn admin-btn--ghost" href="{{ url_for('admin.projects') }}">{{ icon('arrow-left') }}<span>BACK TO LIST</span></a>
+    <button class="admin-btn admin-btn--primary" type="submit" form="project-form">{{ icon('save') }}<span>{{ 'SAVE CHANGES' if project else 'CREATE PROJECT' }}</span></button>
+  </div>
+</header>
+
+{{ form_feedback(form) }}
+
+<form id="project-form" class="admin-form-layout" method="post" enctype="multipart/form-data" novalidate>
+  {{ form.hidden_tag() }}
+
+  <div class="admin-form-main">
+    <fieldset class="admin-fieldset">
+      <legend><span>01</span> OBJECT IDENTITY</legend>
+      <div class="admin-form-grid">
+        {{ field(form.title, 'PROJECT TITLE', wide=True, placeholder='e.g. FRIENDSHARE') }}
+        {{ field(form.tagline, 'TAGLINE', wide=True, placeholder='One line that explains the object.') }}
+        {{ textarea(form.description, 'SHORT DESCRIPTION', wide=True, rows=4, placeholder='A concise summary for the project card.') }}
+        {{ textarea(form.long_description, 'FULL BUILD RECORD', wide=True, rows=10, hint='Separate paragraphs with a blank line. Leave blank if no long-form record exists.', placeholder='The full story of the build, the decisions and the result.') }}
+        {{ field(form.tech_stack, 'TECHNOLOGY TAGS', wide=True, hint='Comma-separated. Only list technology that is actually used.', placeholder='Flask, SQLite, JavaScript') }}
+      </div>
+    </fieldset>
+
+    <fieldset class="admin-fieldset">
+      <legend><span>02</span> EXTERNAL COORDINATES</legend>
+      <div class="admin-form-grid">
+        {{ field(form.external_url, 'LIVE PROJECT URL', placeholder='https://...') }}
+        {{ field(form.github_url, 'SOURCE / GITHUB URL', placeholder='https://github.com/...') }}
+      </div>
+      <p class="admin-note">{{ icon('link') }} A live URL makes the public record show ENTER LIVE PROJECT. A GitHub URL adds the source link. Both are optional.</p>
+    </fieldset>
+
+    <fieldset class="admin-fieldset">
+      <legend><span>03</span> VISUAL RECORD</legend>
+      {{ file_field(form.cover_image, 'COVER IMAGE', hint='Used on the featured project and project cards.', current_url=url_for('main.uploaded_file', filename=project.cover_image) if project and project.cover_image else None) }}
+      {% if project and project.cover_image %}
+      <button type="submit" form="cover-delete-form" class="admin-btn admin-btn--danger admin-btn--sm">{{ icon('trash-2') }} REMOVE COVER IMAGE</button>
+      {% endif %}
+
+      <div class="admin-field{% if form.images.errors %} has-error{% endif %}">
+        <label for="{{ form.images.id }}">ADDITIONAL SCREENSHOTS</label>
+        <div class="admin-upload">
+          {{ form.images(class="admin-file-input", accept="image/jpeg,image/jpg,image/png,image/webp", multiple=True) }}
+          <p class="admin-file-hint">Select up to {{ config.MAX_IMAGES_PER_UPLOAD }} images at once. Each file is validated and resized above 2600px.</p>
+        </div>
+        {% for error in form.images.errors %}<p class="admin-field__error">{{ error }}</p>{% endfor %}
+      </div>
+      <p class="admin-note">{{ icon('info') }} Screenshots are appended to the existing register. Use the screenshot register below to reorder, caption or remove individual frames.</p>
+    </fieldset>
+  </div>
+
+  <aside class="admin-form-aside">
+    <section class="admin-card admin-card--sticky">
+      <header class="admin-card__head">
+        <div>
+          <span class="admin-kicker">PUBLISHING</span>
+          <h2>{{ 'LIVE OBJECT' if project else 'NOT YET CREATED' }}</h2>
+        </div>
+        {{ icon('folder-kanban') }}
+      </header>
+      <div class="admin-checkbox-stack">
+        {{ checkbox(form.featured, 'Featured projects lead the public Projects section.') }}
+      </div>
+      {{ field(form.sort_order, 'SORT ORDER', hint='Lower numbers appear first among supporting records.', placeholder='0') }}
+      <dl class="admin-vitals">
+        <div><dt>PUBLIC SECTION</dt><dd>PROJECTS / 05</dd></div>
+        <div><dt>COVER</dt><dd>{{ 'ATTACHED' if project and project.cover_image else 'PLATE FALLBACK' }}</dd></div>
+        <div><dt>SCREENSHOTS</dt><dd>{{ "%02d"|format(screenshot_count) }}</dd></div>
+        <div><dt>LIVE LINK</dt><dd>{{ 'CONFIGURED' if project and project.external_url else 'NOT SET' }}</dd></div>
+      </dl>
+      {% if project %}
+      <a class="admin-btn admin-btn--ghost admin-btn--block" href="{{ url_for('main.index') }}#project-{{ project.id }}" target="_blank" rel="noopener">{{ icon('external-link') }} VIEW PUBLIC RECORD</a>
+      {% endif %}
+    </section>
+
+    <section class="admin-card admin-card--help">
+      <span class="admin-card__icon">{{ icon('folder-kanban') }}</span>
+      <h2>NO INVENTED FEATURES</h2>
+      <p>Describe only what the project actually does. Upload only real screenshots you have permission to publish.</p>
+      <p>If no cover exists, the public archive uses a generated archive plate instead of a stock image.</p>
+    </section>
+  </aside>
+</form>
+
+{% if project and project.cover_image %}
+<form id="cover-delete-form" action="{{ url_for('admin.project_cover_delete', project_id=project.id) }}" method="post" data-confirm="Remove the cover image for “{{ project.title }}”? The saved file will be deleted.">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+</form>
+{% endif %}
+
+{% if project and project.images %}
+<section class="admin-card admin-screenshot-register" aria-labelledby="screenshot-register-title">
+  <header class="admin-card__head">
+    <div>
+      <span class="admin-kicker">VISUAL REGISTER / {{ "%02d"|format(project.images|length) }}</span>
+      <h2 id="screenshot-register-title">PROJECT SCREENSHOTS</h2>
+    </div>
+    <span class="admin-pill admin-pill--online">{{ project.images|length }} FRAMES</span>
+  </header>
+  <div class="admin-image-grid">
+    {% for image in project.images %}
+    <article class="admin-image-card">
+      <div class="admin-image-card__media">
+        <img src="{{ url_for('main.uploaded_file', filename=image.filename) }}" alt="{{ image.caption or project.title ~ ' screenshot ' ~ loop.index }}" loading="lazy" decoding="async">
+        <span class="admin-image-card__index">{{ "%02d"|format(loop.index) }}</span>
+      </div>
+      <div class="admin-image-card__body">
+        <span class="admin-kicker">{{ image.filename.split('/')[-1] }}</span>
+        <form action="{{ url_for('admin.project_image_caption', image_id=image.id) }}" method="post" class="admin-inline-caption-form">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <label for="caption-{{ image.id }}" class="visually-hidden">Caption for screenshot {{ loop.index }}</label>
+          <input id="caption-{{ image.id }}" name="caption" value="{{ image.caption or '' }}" maxlength="250" class="admin-input" placeholder="Screenshot caption">
+          <button type="submit" class="admin-icon-btn" aria-label="Save caption" title="Save caption">{{ icon('save') }}</button>
+        </form>
+        <div class="admin-image-card__actions">
+          <div class="admin-move-group" aria-label="Reorder screenshot {{ loop.index }}">
+            {{ move_form(url_for('admin.project_image_move', image_id=image.id, direction='up'), 'Move screenshot up', loop.first) }}
+            {{ move_down_form(url_for('admin.project_image_move', image_id=image.id, direction='down'), 'Move screenshot down', loop.last) }}
+          </div>
+          {{ confirm_form(url_for('admin.project_image_delete', image_id=image.id), 'Remove screenshot ' ~ loop.index ~ ' from “' ~ project.title ~ '”? The saved file will be deleted.', 'REMOVE') }}
+        </div>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+{% elif project %}
+<section class="admin-card admin-empty-card">
+  <span class="admin-card__icon">{{ icon('images') }}</span>
+  <h2>NO SCREENSHOTS ATTACHED.</h2>
+  <p>Upload real project screenshots above. They will appear in the build record on the public project card.</p>
+</section>
+{% endif %}
+{% endblock %}

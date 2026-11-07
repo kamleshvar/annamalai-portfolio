@@ -1,0 +1,69 @@
+{% extends "admin/base.html" %}
+{% from "macros/ui.html" import icon %}
+{% from "admin/_macros.html" import confirm_form, move_form, move_down_form, empty_state %}
+
+{% block page_title %}Projects{% endblock %}
+
+{% block content %}
+<header class="admin-page-head">
+  <div>
+    <span class="admin-kicker">PROJECT ARCHIVE / {{ "%02d"|format(projects|length) }}</span>
+    <h1>PROJECTS<span aria-hidden="true">.</span></h1>
+    <p>Live objects in the public archive. Featured projects lead the section; all other records follow in sort order.</p>
+  </div>
+  <div class="admin-page-actions">
+    <a class="admin-btn admin-btn--ghost" href="{{ url_for('main.index') }}#projects" target="_blank" rel="noopener">{{ icon('external-link') }}<span>VIEW PROJECTS</span></a>
+    <a class="admin-btn admin-btn--primary" href="{{ url_for('admin.project_new') }}">{{ icon('plus') }}<span>NEW PROJECT</span></a>
+  </div>
+</header>
+
+<div class="admin-index-bar">
+  <span><i class="admin-live-dot"></i> {{ projects|length }} OBJECTS</span>
+  <span>{{ projects|selectattr('featured')|list|length }} FEATURED</span>
+  <span>{{ projects|map(attribute='images')|map('length')|sum }} SCREENSHOTS</span>
+</div>
+
+{% if projects %}
+<div class="admin-project-grid">
+  {% for project in projects %}
+  <article class="admin-project-card">
+    <div class="admin-project-card__media">
+      {% if project.cover_image %}
+      <img src="{{ url_for('main.uploaded_file', filename=project.cover_image) }}" alt="{{ project.title }} cover" loading="lazy" decoding="async">
+      {% else %}
+      <span class="admin-project-card__plate" aria-hidden="true">{{ project.title[:1] }}</span>
+      {% endif %}
+      <span class="admin-project-card__index">{{ "%02d"|format(loop.index) }}</span>
+      {% if project.featured %}<span class="admin-pill admin-pill--featured">FEATURED</span>{% endif %}
+    </div>
+    <div class="admin-project-card__body">
+      <span class="admin-kicker">OBJECT / {{ "%02d"|format(loop.index) }} / SORT {{ project.sort_order }}</span>
+      <h2>{{ project.title }}</h2>
+      {% if project.tagline %}<p>{{ project.tagline }}</p>{% else %}<p class="admin-muted">No tagline recorded.</p>{% endif %}
+      <div class="admin-tag-row">
+        {% for tech in project.tech_list[:5] %}<span>{{ tech }}</span>{% else %}<span class="admin-muted">NO TECH TAGS</span>{% endfor %}
+      </div>
+      <div class="admin-project-card__meta">
+        <span>{{ icon('images') }} {{ project.images|length }} SCREENSHOT{{ '' if project.images|length == 1 else 'S' }}</span>
+        <span>{{ icon('calendar-clock') }} {{ project.updated_at|datefmt }}</span>
+      </div>
+      <div class="admin-project-card__actions">
+        <a class="admin-btn admin-btn--primary admin-btn--sm" href="{{ url_for('admin.project_edit', project_id=project.id) }}">{{ icon('pencil') }} EDIT</a>
+        <form action="{{ url_for('admin.project_feature', project_id=project.id) }}" method="post" class="admin-inline-form">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="admin-btn admin-btn--ghost admin-btn--sm">{{ icon('sparkles') }} {{ 'UNFEATURE' if project.featured else 'FEATURE' }}</button>
+        </form>
+        <div class="admin-move-group" aria-label="Reorder {{ project.title }}">
+          {{ move_form(url_for('admin.project_move', project_id=project.id, direction='up'), 'Move ' ~ project.title ~ ' up', loop.first) }}
+          {{ move_down_form(url_for('admin.project_move', project_id=project.id, direction='down'), 'Move ' ~ project.title ~ ' down', loop.last) }}
+        </div>
+        {{ confirm_form(url_for('admin.project_delete', project_id=project.id), 'Delete “' ~ project.title ~ '”, its cover image and all screenshots? This cannot be undone.', 'DELETE') }}
+      </div>
+    </div>
+  </article>
+  {% endfor %}
+</div>
+{% else %}
+{{ empty_state('NO PROJECTS RECORDED.', 'The public project archive will show its empty state until an object is created.', url_for('admin.project_new'), 'CREATE FIRST PROJECT', 'folder-kanban') }}
+{% endif %}
+{% endblock %}

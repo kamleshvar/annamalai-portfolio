@@ -1,0 +1,122 @@
+{% extends "admin/base.html" %}
+{% from "macros/ui.html" import icon %}
+{% from "admin/_macros.html" import field, form_feedback %}
+
+{% block page_title %}Account{% endblock %}
+
+{% block content %}
+<header class="admin-page-head">
+  <div>
+    <span class="admin-kicker">ACCESS CONTROL / ADMINISTRATOR</span>
+    <h1>ACCOUNT<span aria-hidden="true">.</span></h1>
+    <p>The credentials that open this control room. The password itself is stored only as a one-way hash.</p>
+  </div>
+  <div class="admin-page-actions">
+    <a class="admin-btn admin-btn--ghost" href="{{ url_for('admin.change_password') }}">{{ icon('key-round') }}<span>CHANGE PASSWORD</span></a>
+    <button class="admin-btn admin-btn--primary" type="submit" form="account-form">{{ icon('save') }}<span>SAVE USERNAME</span></button>
+  </div>
+</header>
+
+{{ form_feedback(form) }}
+
+<div class="admin-account-layout">
+  <div class="admin-account-main">
+    <section class="admin-card">
+      <header class="admin-card__head">
+        <div>
+          <span class="admin-kicker">01 / IDENTITY</span>
+          <h2>ADMINISTRATOR USERNAME</h2>
+        </div>
+        {{ icon('user-cog') }}
+      </header>
+      <form id="account-form" action="{{ url_for('admin.account') }}" method="post" class="admin-stack-form" novalidate>
+        {{ form.hidden_tag() }}
+        {{ field(form.username, 'USERNAME', hint='3–40 characters. Letters, numbers, dots, dashes and underscores only.', autocomplete='username', placeholder='futuremusic') }}
+        <div class="admin-form-actions">
+          <button type="submit" class="admin-btn admin-btn--primary">{{ icon('save') }} SAVE USERNAME</button>
+          <span class="admin-muted">The new username is required at the next sign-in.</span>
+        </div>
+      </form>
+    </section>
+
+    <section class="admin-card">
+      <header class="admin-card__head">
+        <div>
+          <span class="admin-kicker">02 / SECURITY</span>
+          <h2>ACCESS CREDENTIALS</h2>
+        </div>
+        {{ icon('shield-check') }}
+      </header>
+      <div class="admin-security-state">
+        <span class="admin-security-state__icon{% if current_admin.must_change_password %} is-warning{% endif %}">{{ icon('lock-keyhole') }}</span>
+        <div>
+          <span class="admin-kicker">PASSWORD STATE</span>
+          <h3>{{ 'INITIAL PASSWORD STILL ACTIVE' if current_admin.must_change_password else 'PASSWORD REPLACED' }}</h3>
+          <p>
+            {% if current_admin.must_change_password %}
+            The seeded password must be replaced before the rest of the control room unlocks.
+            {% else %}
+            The account is using a custom password. Only the hash is stored in the database.
+            {% endif %}
+          </p>
+        </div>
+        <a class="admin-btn admin-btn--primary" href="{{ url_for('admin.change_password') }}">{{ icon('key-round') }} {{ 'REPLACE PASSWORD NOW' if current_admin.must_change_password else 'CHANGE PASSWORD' }}</a>
+      </div>
+      <ul class="admin-security-list">
+        <li>{{ icon('check') }}<span>Passwords are hashed with Werkzeug; the plain text is never stored.</span></li>
+        <li>{{ icon('check') }}<span>New passwords require at least 8 characters, including a letter and a number.</span></li>
+        <li>{{ icon('check') }}<span>Sign-in attempts are throttled after repeated failures.</span></li>
+        <li>{{ icon('check') }}<span>All control room actions are CSRF-protected and sessions expire after 8 hours.</span></li>
+      </ul>
+    </section>
+
+    <section class="admin-card admin-card--danger">
+      <header class="admin-card__head">
+        <div>
+          <span class="admin-kicker">03 / SESSION</span>
+          <h2>END ACCESS</h2>
+        </div>
+        {{ icon('log-out') }}
+      </header>
+      <p>Close this control room session on the current browser. You can sign in again with the administrator credentials.</p>
+      <form action="{{ url_for('admin.logout') }}" method="post" class="admin-inline-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="admin-btn admin-btn--danger">{{ icon('log-out') }} LOG OUT OF CONTROL ROOM</button>
+      </form>
+    </section>
+  </div>
+
+  <aside class="admin-account-aside">
+    <section class="admin-card admin-card--sticky">
+      <header class="admin-card__head">
+        <div>
+          <span class="admin-kicker">ACCOUNT RECORD</span>
+          <h2>CONTROL STATE</h2>
+        </div>
+        <span class="admin-pill admin-pill--online"><i class="admin-live-dot"></i> ACTIVE</span>
+      </header>
+      <div class="admin-account-badge">
+        <span class="admin-account-badge__initial" aria-hidden="true">{{ current_admin.username[:1]|upper }}</span>
+        <strong>{{ current_admin.username }}</strong>
+        <span>ARCHIVE ADMINISTRATOR</span>
+      </div>
+      <dl class="admin-vitals">
+        <div><dt>ACCOUNT CREATED</dt><dd>{{ current_admin.created_at|datefmt }}</dd></div>
+        <div><dt>LAST LOGIN</dt><dd>{{ current_admin.last_login_at|timefmt if current_admin.last_login_at else 'CURRENT SESSION' }}</dd></div>
+        <div><dt>SESSION LENGTH</dt><dd>8 HOURS</dd></div>
+        <div><dt>PASSWORD</dt><dd class="{{ 'admin-signal-text' if current_admin.must_change_password }}">{{ 'REPLACEMENT REQUIRED' if current_admin.must_change_password else 'CUSTOM / HASHED' }}</dd></div>
+        <div><dt>DATABASE</dt><dd>SQLITE / LOCAL</dd></div>
+      </dl>
+      <a href="{{ url_for('main.index') }}" target="_blank" rel="noopener" class="admin-btn admin-btn--ghost admin-btn--block">{{ icon('external-link') }} OPEN PUBLIC ARCHIVE</a>
+    </section>
+
+    <section class="admin-card admin-card--help">
+      <span class="admin-card__icon">{{ icon('terminal') }}</span>
+      <h2>LOCKED OUT?</h2>
+      <p>If the password is lost, reset it from the server console:</p>
+      <code class="admin-code">flask --app run set-admin-password</code>
+      <p>The command updates the hash and reactivates the account. It requires access to the machine running the archive.</p>
+    </section>
+  </aside>
+</div>
+{% endblock %}

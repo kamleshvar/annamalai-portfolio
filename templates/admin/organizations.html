@@ -1,0 +1,62 @@
+{% extends "admin/base.html" %}
+{% from "macros/ui.html" import icon %}
+{% from "admin/_macros.html" import confirm_form, move_form, move_down_form, empty_state %}
+
+{% block page_title %}Organizations{% endblock %}
+
+{% block content %}
+<header class="admin-page-head">
+  <div>
+    <span class="admin-kicker">ORGANIZATION REGISTRY / {{ "%02d"|format(organizations|length) }}</span>
+    <h1>ORGANIZATIONS<span aria-hidden="true">.</span></h1>
+    <p>Teams, companies and communities connected to the timeline. These records power the public Teams section.</p>
+  </div>
+  <div class="admin-page-actions">
+    <a class="admin-btn admin-btn--ghost" href="{{ url_for('main.index') }}#teams" target="_blank" rel="noopener">{{ icon('external-link') }}<span>VIEW TEAMS</span></a>
+    <a class="admin-btn admin-btn--primary" href="{{ url_for('admin.organization_new') }}">{{ icon('plus') }}<span>NEW ORGANIZATION</span></a>
+  </div>
+</header>
+
+<div class="admin-index-bar">
+  <span><i class="admin-live-dot"></i> {{ organizations|length }} REGISTERED</span>
+  <span>LOGOS / {{ organizations|selectattr('logo')|list|length }}</span>
+  <span>DISPLAY ORDER / ASCENDING</span>
+</div>
+
+{% if organizations %}
+<div class="admin-record-list">
+  {% for organization in organizations %}
+  <article class="admin-record">
+    <span class="admin-record__order">{{ "%02d"|format(loop.index) }}</span>
+    <div class="admin-record__media admin-record__media--logo">
+      {% if organization.logo %}
+      <img src="{{ url_for('main.uploaded_file', filename=organization.logo) }}" alt="{{ organization.name }} logo" loading="lazy" decoding="async">
+      {% else %}
+      <span class="admin-record__monogram">{{ organization.initials }}</span>
+      {% endif %}
+    </div>
+    <div class="admin-record__body">
+      <span class="admin-kicker">AFFILIATION / VERIFIED RECORD</span>
+      <h2>{{ organization.name }}</h2>
+      <div class="admin-record__meta">
+        <span class="admin-pill{% if organization.role %} admin-pill--signal{% endif %}">{{ organization.role or 'ROLE UNRECORDED' }}</span>
+        <span>SORT / {{ organization.sort_order }}</span>
+        {% if organization.website %}<span>{{ icon('link') }} LINKED</span>{% else %}<span>NO EXTERNAL LINK</span>{% endif %}
+      </div>
+      {% if organization.description %}<p>{{ organization.description|truncate(180, True, '…') }}</p>{% else %}<p class="admin-muted">No organization description recorded.</p>{% endif %}
+    </div>
+    <div class="admin-record__actions">
+      <div class="admin-move-group" aria-label="Reorder {{ organization.name }}">
+        {{ move_form(url_for('admin.organization_move', organization_id=organization.id, direction='up'), 'Move ' ~ organization.name ~ ' up', loop.first) }}
+        {{ move_down_form(url_for('admin.organization_move', organization_id=organization.id, direction='down'), 'Move ' ~ organization.name ~ ' down', loop.last) }}
+      </div>
+      <a class="admin-btn admin-btn--ghost admin-btn--sm" href="{{ url_for('admin.organization_edit', organization_id=organization.id) }}">{{ icon('pencil') }} EDIT</a>
+      {{ confirm_form(url_for('admin.organization_delete', organization_id=organization.id), 'Delete the organization “' ~ organization.name ~ '” and its logo? This cannot be undone.', 'DELETE') }}
+    </div>
+  </article>
+  {% endfor %}
+</div>
+{% else %}
+{{ empty_state('NO ORGANIZATIONS RECORDED.', 'The Teams section will show its empty state until an organization is added.', url_for('admin.organization_new'), 'ADD FIRST ORGANIZATION', 'building-2') }}
+{% endif %}
+{% endblock %}

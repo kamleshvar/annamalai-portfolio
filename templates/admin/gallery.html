@@ -1,0 +1,91 @@
+{% extends "admin/base.html" %}
+{% from "macros/ui.html" import icon %}
+{% from "admin/_macros.html" import field, textarea, confirm_form, move_form, move_down_form, empty_state, form_feedback %}
+
+{% block page_title %}Gallery{% endblock %}
+
+{% block content %}
+<header class="admin-page-head">
+  <div>
+    <span class="admin-kicker">VISUAL MEMORY ARCHIVE / {{ "%02d"|format(image_count) }} FRAMES</span>
+    <h1>GALLERY<span aria-hidden="true">.</span></h1>
+    <p>Organise real photographs into channels. Empty categories stay ready without creating placeholder images.</p>
+  </div>
+  <div class="admin-page-actions">
+    <a class="admin-btn admin-btn--ghost" href="{{ url_for('main.index') }}#gallery" target="_blank" rel="noopener">{{ icon('external-link') }}<span>VIEW GALLERY</span></a>
+  </div>
+</header>
+
+<div class="admin-index-bar">
+  <span><i class="admin-live-dot"></i> {{ categories|length }} CATEGORIES</span>
+  <span>{{ "%02d"|format(image_count) }} FRAMES INDEXED</span>
+  <span>{{ categories|selectattr('images')|list|length }} ACTIVE CHANNELS</span>
+</div>
+
+<div class="admin-gallery-layout">
+  <div class="admin-gallery-main">
+    {% if categories %}
+    <div class="admin-category-list">
+      {% for category in categories %}
+      <article class="admin-category-card">
+        <div class="admin-category-card__cover">
+          {% if category.cover %}
+          <img src="{{ url_for('main.uploaded_file', filename=category.cover) }}" alt="{{ category.name }} cover" loading="lazy" decoding="async">
+          {% else %}
+          <span class="admin-category-card__empty">{{ icon('images') }}<em>EMPTY CHANNEL</em></span>
+          {% endif %}
+          <span class="admin-category-card__index">{{ "%02d"|format(loop.index) }}</span>
+        </div>
+        <div class="admin-category-card__body">
+          <span class="admin-kicker">CHANNEL / {{ category.slug }} / SORT {{ category.sort_order }}</span>
+          <h2>{{ category.name }}</h2>
+          {% if category.description %}<p>{{ category.description }}</p>{% else %}<p class="admin-muted">No channel description recorded.</p>{% endif %}
+          <div class="admin-category-card__meta">
+            <span class="admin-pill{% if category.images %} admin-pill--online{% else %} admin-pill--muted{% endif %}">{{ category.images|length }} FRAME{{ '' if category.images|length == 1 else 'S' }}</span>
+            <span>{{ icon('calendar-clock') }} {{ category.updated_at|datefmt }}</span>
+          </div>
+          <div class="admin-category-card__actions">
+            <a class="admin-btn admin-btn--primary admin-btn--sm" href="{{ url_for('admin.gallery_category', category_id=category.id) }}">{{ icon('folder-open') }} MANAGE FRAMES</a>
+            <div class="admin-move-group" aria-label="Reorder {{ category.name }}">
+              {{ move_form(url_for('admin.gallery_category_move', category_id=category.id, direction='up'), 'Move ' ~ category.name ~ ' up', loop.first) }}
+              {{ move_down_form(url_for('admin.gallery_category_move', category_id=category.id, direction='down'), 'Move ' ~ category.name ~ ' down', loop.last) }}
+            </div>
+            {{ confirm_form(url_for('admin.gallery_category_delete', category_id=category.id), 'Delete the gallery category “' ~ category.name ~ '”, including all ' ~ category.images|length ~ ' photograph(s) inside it? This cannot be undone.', 'DELETE') }}
+          </div>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+    {% else %}
+    {{ empty_state('NO GALLERY CATEGORIES.', 'Create a channel first, then upload photographs into it.', None, None, 'images') }}
+    {% endif %}
+  </div>
+
+  <aside class="admin-gallery-aside">
+    <section class="admin-card admin-card--sticky">
+      <header class="admin-card__head">
+        <div>
+          <span class="admin-kicker">NEW CHANNEL</span>
+          <h2>ADD CATEGORY</h2>
+        </div>
+        {{ icon('folder-plus') }}
+      </header>
+      {{ form_feedback(category_form) }}
+      <form action="{{ url_for('admin.gallery_category_new') }}" method="post" class="admin-stack-form" novalidate>
+        {{ category_form.hidden_tag() }}
+        {{ field(category_form.name, 'CATEGORY NAME', placeholder='e.g. MILESTONES') }}
+        {{ textarea(category_form.description, 'DESCRIPTION', rows=4, placeholder='What belongs in this channel?') }}
+        {{ field(category_form.sort_order, 'SORT ORDER', hint='Lower numbers appear first.', placeholder='0') }}
+        <button type="submit" class="admin-btn admin-btn--primary admin-btn--block">{{ icon('plus') }} CREATE CATEGORY</button>
+      </form>
+    </section>
+
+    <section class="admin-card admin-card--help">
+      <span class="admin-card__icon">{{ icon('image') }}</span>
+      <h2>REAL FRAMES ONLY</h2>
+      <p>The archive starts with empty categories on purpose. No stock photographs are inserted.</p>
+      <p>Upload JPG, PNG or WEBP files. Images are validated and resized above 2600px.</p>
+    </section>
+  </aside>
+</div>
+{% endblock %}

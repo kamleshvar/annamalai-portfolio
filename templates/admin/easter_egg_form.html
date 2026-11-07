@@ -1,0 +1,100 @@
+{% extends "admin/base.html" %}
+{% from "macros/ui.html" import icon %}
+{% from "admin/_macros.html" import field, textarea, select_field, checkbox, form_feedback %}
+
+{% block page_title %}{{ 'Edit Hidden Record' if egg else 'New Hidden Record' }}{% endblock %}
+
+{% block content %}
+<header class="admin-page-head">
+  <div>
+    <span class="admin-kicker">{{ 'EDIT RECORD / ' ~ egg.id if egg else 'NEW HIDDEN RECORD' }}</span>
+    <h1>{{ 'EDIT HIDDEN RECORD' if egg else 'NEW HIDDEN RECORD' }}<span aria-hidden="true">.</span></h1>
+    <p>{{ 'Update where and how this hidden message appears.' if egg else 'Write a secret that rewards curiosity without hiding essential content.' }}</p>
+  </div>
+  <div class="admin-page-actions">
+    <a class="admin-btn admin-btn--ghost" href="{{ url_for('admin.easter_eggs') }}">{{ icon('arrow-left') }}<span>BACK TO LIST</span></a>
+    <button class="admin-btn admin-btn--primary" type="submit" form="egg-form">{{ icon('save') }}<span>{{ 'SAVE CHANGES' if egg else 'CREATE RECORD' }}</span></button>
+  </div>
+</header>
+
+{{ form_feedback(form) }}
+
+<form id="egg-form" class="admin-form-layout" method="post" novalidate>
+  {{ form.hidden_tag() }}
+
+  <div class="admin-form-main">
+    <fieldset class="admin-fieldset">
+      <legend><span>01</span> RECORD IDENTITY</legend>
+      <div class="admin-form-grid">
+        {{ field(form.key, 'UNIQUE KEY', hint='Lowercase letters, numbers, hyphens and underscores only. Must be unique.', placeholder='e.g. temporal-artifact') }}
+        {{ field(form.title, 'TITLE', placeholder='THE ARTIFACT REMEMBERS') }}
+        {{ textarea(form.message, 'REVEALED MESSAGE', wide=True, rows=8, hint='This text appears inside the archive overlay or terminal. Plain text only.', placeholder='The message hidden inside this record.') }}
+      </div>
+    </fieldset>
+
+    <fieldset class="admin-fieldset">
+      <legend><span>02</span> PLACEMENT &amp; INTERACTION</legend>
+      <div class="admin-form-grid">
+        {{ select_field(form.section, 'ASSIGNED SECTION', hint='GLOBAL appears in the archive-wide node zone. TERMINAL + GLOBAL becomes the terminal handshake.') }}
+        {{ select_field(form.interaction_type, 'INTERACTION TYPE', hint='ARTIFACT is used by the hero artifact. DOCUMENT/HIDDEN create floating nodes.') }}
+        {{ field(form.sort_order, 'SORT ORDER', hint='Lower numbers are chosen first when the archive needs a single record.', placeholder='0') }}
+      </div>
+      <div class="admin-checkbox-stack">
+        {{ checkbox(form.enabled, 'Enabled records are readable by the public. Disabled records stay stored but sealed.') }}
+      </div>
+    </fieldset>
+
+    <fieldset class="admin-fieldset">
+      <legend><span>03</span> TEMPAD ACCESS FRAGMENT</legend>
+      <div class="admin-form-grid">
+        {{ field(form.access_code, 'ACCESS CODE', hint='Shown inside the hidden-record overlay. Visitors submit it in the terminal with UNLOCK <code>. Leave blank to keep this record outside the puzzle.', placeholder='e.g. ORIGIN') }}
+        {{ field(form.access_slot, 'FRAGMENT SLOT (0–4)', hint='1–4 publishes a fragment. Each slot can belong to only one record. Use 0 for no fragment.', placeholder='0') }}
+      </div>
+      <p class="admin-note">{{ icon('lock') }} The CONTROL section unlocks only after every published fragment has been submitted in the Tempad terminal. This is a narrative gate, not account security.</p>
+    </fieldset>
+
+    <fieldset class="admin-fieldset">
+      <legend><span>04</span> PLACEMENT PREVIEW</legend>
+      <div class="admin-egg-preview" aria-hidden="true">
+        <span class="admin-egg-preview__signal"></span>
+        <span class="admin-egg-preview__icon">{{ icon('sparkles') }}</span>
+        <div>
+          <strong id="egg-preview-title">{{ form.title.data or 'HIDDEN RECORD TITLE' }}</strong>
+          <span id="egg-preview-meta">{{ (form.section.data or 'GLOBAL')|upper }} / {{ (form.interaction_type.data or 'HIDDEN')|upper }}</span>
+        </div>
+      </div>
+      <p class="admin-note">{{ icon('info') }} The title and placement update in this preview as you edit the fields above.</p>
+    </fieldset>
+  </div>
+
+  <aside class="admin-form-aside">
+    <section class="admin-card admin-card--sticky">
+      <header class="admin-card__head">
+        <div>
+          <span class="admin-kicker">RECORD STATE</span>
+          <h2>{{ 'LIVE RECORD' if egg else 'NOT YET CREATED' }}</h2>
+        </div>
+        {{ icon('key-round') }}
+      </header>
+      <dl class="admin-vitals">
+        <div><dt>PUBLIC VISIBILITY</dt><dd>{{ 'LIVE' if egg and egg.enabled else ('SEALED' if egg else 'PENDING') }}</dd></div>
+        <div><dt>KEY</dt><dd>{{ egg.key if egg else 'NEW' }}</dd></div>
+        <div><dt>SECTION</dt><dd>{{ egg.section|upper if egg else '—' }}</dd></div>
+        <div><dt>TYPE</dt><dd>{{ egg.interaction_type|upper if egg else '—' }}</dd></div>
+        <div><dt>FRAGMENT</dt><dd>{% if egg and egg.access_code %}{{ "%02d"|format(egg.access_slot) }} / {{ egg.access_code }}{% else %}NONE{% endif %}</dd></div>
+      </dl>
+      {% if egg %}
+      <a class="admin-btn admin-btn--ghost admin-btn--block" href="{{ url_for('main.index') }}" target="_blank" rel="noopener">{{ icon('search') }} SEARCH THE PUBLIC ARCHIVE</a>
+      {% endif %}
+    </section>
+
+    <section class="admin-card admin-card--help">
+      <span class="admin-card__icon">{{ icon('sparkles') }}</span>
+      <h2>SECRETS, NOT OBSTACLES</h2>
+      <p>Easter eggs are optional discoveries. Never place essential biography, contact information or project details only inside a hidden record.</p>
+      <p>An access fragment is the reward for opening the record. The visitor still has to carry the code to the Tempad and type <code>UNLOCK CODE</code>.</p>
+      <p>Plain text keeps the interface safe; no HTML is rendered.</p>
+    </section>
+  </aside>
+</form>
+{% endblock %}

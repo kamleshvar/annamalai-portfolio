@@ -1,0 +1,74 @@
+{% from "macros/ui.html" import icon, section_meta, expressive_title, egg_nodes %}
+<section class="section section--teams" id="teams" data-archive-section="teams">
+  <div class="container">
+    {{ section_meta('04', 'ORGANIZATION REGISTRY', 'ACTIVE MEMBERSHIPS') }}
+
+    <div class="section-heading-row">
+      <div data-reveal>
+        <h2 class="section-title">{{ expressive_title(site.teams_heading) }}</h2>
+        <p class="section-intro">{{ site.teams_intro }}</p>
+      </div>
+      <div class="count-seal" data-reveal aria-label="{{ organizations|length }} organizations">
+        <span class="count-seal__value">{{ "%02d"|format(organizations|length) }}</span>
+        <span class="count-seal__label">ORGS<br>ON RECORD</span>
+      </div>
+    </div>
+
+    {% if organizations %}
+    <div class="organization-list">
+      {% for organization in organizations %}
+      <article class="organization-card" data-reveal>
+        <span class="organization-card__index mono-label">{{ "%02d"|format(loop.index) }} / {{ loop.index0 + 1 }}</span>
+        <div class="organization-visual">
+          {% if organization.logo %}
+          <img src="{{ url_for('main.uploaded_file', filename=organization.logo) }}" alt="{{ organization.name }} logo" loading="lazy" decoding="async">
+          {% else %}
+          <div class="organization-monogram" aria-label="{{ organization.name }} monogram">
+            <span class="organization-monogram__ring organization-monogram__ring--a" aria-hidden="true"></span>
+            <span class="organization-monogram__ring organization-monogram__ring--b" aria-hidden="true"></span>
+            <span class="organization-monogram__ticks" aria-hidden="true"></span>
+            <b>{{ organization.initials }}</b>
+            <i class="organization-monogram__scan" aria-hidden="true"></i>
+          </div>
+          {% endif %}
+          <span class="organization-visual__label mono-label">AFFILIATION / VERIFIED</span>
+        </div>
+
+        <div class="organization-content">
+          <span class="mono-label">ORGANIZATION COORDINATE {{ "%02d"|format(loop.index) }}</span>
+          <h3>{{ organization.name }}</h3>
+          {% if organization.role %}
+          <span class="role-tag"><i></i>{{ organization.role }}</span>
+          {% endif %}
+          {% if organization.description %}
+          <p class="organization-description">{{ organization.description }}</p>
+          {% else %}
+          <p class="record-pending">ARCHIVE DESCRIPTION // AWAITING ENTRY</p>
+          {% endif %}
+          <div class="organization-links">
+            {% if organization.website %}
+            <a class="link-arrow" href="{{ organization.website }}" target="_blank" rel="noopener noreferrer">
+              EXTERNAL COORDINATE {{ icon('arrow-up-right') }}
+            </a>
+            {% else %}
+            <span class="record-pending record-pending--small">EXTERNAL COORDINATE / UNLISTED</span>
+            {% endif %}
+          </div>
+        </div>
+        <span class="organization-card__scan" aria-hidden="true"></span>
+      </article>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="archive-empty" data-reveal>
+      <span class="archive-empty__code">04 / EMPTY</span>
+      <h3>NO TEAMS ON RECORD YET.</h3>
+      <p>Organization records will appear here as soon as they are added to the registry.</p>
+    </div>
+    {% endif %}
+
+    <div class="section-float-zone section-float-zone--right">
+      {{ egg_nodes(eggs_by_section.get('teams', [])) }}
+    </div>
+  </div>
+</section>

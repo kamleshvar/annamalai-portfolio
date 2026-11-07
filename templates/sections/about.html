@@ -1,0 +1,92 @@
+{% from "macros/ui.html" import icon, section_meta, expressive_title, egg_nodes, empty_record %}
+<section class="section section--about" id="about" data-archive-section="about">
+  <div class="container">
+    {{ section_meta('02', 'IDENTITY RECORD', 'ARCHIVE / VERIFIED') }}
+
+    <div class="about-heading-row" data-reveal>
+      <h2 class="section-title section-title--editorial">{{ expressive_title(site.about_heading) }}</h2>
+      <p class="section-note handwritten">{{ site.about_note }}</p>
+    </div>
+
+    <div class="about-grid">
+      <aside class="about-portrait" data-reveal>
+        <div class="portrait-frame{% if not profile.avatar %} portrait-frame--empty{% endif %}">
+          {% if profile.avatar %}
+          <img src="{{ url_for('main.uploaded_file', filename=profile.avatar) }}"
+               alt="Portrait of {{ profile.name }}" loading="lazy" decoding="async">
+          {% else %}
+          <div class="portrait-placeholder" aria-label="Portrait awaiting upload">
+            <span class="portrait-placeholder__rings" aria-hidden="true"></span>
+            <span class="portrait-placeholder__initial">{{ profile.initials }}</span>
+            {{ empty_record('PORTRAIT RECORD', 'AWAITING PHOTOGRAPH') }}
+          </div>
+          {% endif %}
+          <span class="frame-corner frame-corner--tl" aria-hidden="true"></span>
+          <span class="frame-corner frame-corner--tr" aria-hidden="true"></span>
+          <span class="frame-corner frame-corner--bl" aria-hidden="true"></span>
+          <span class="frame-corner frame-corner--br" aria-hidden="true"></span>
+          <span class="portrait-frame__stamp mono-label">FILE / IDENTITY-001</span>
+          <span class="portrait-frame__scan" aria-hidden="true"></span>
+        </div>
+
+        <div class="record-table" aria-label="Identity record">
+          <div><span>DESIGNATION</span><strong>{{ profile.role_line }}</strong></div>
+          <div><span>FOCUS</span><strong>{{ profile.focus_areas or 'ARCHIVE CONTROL' }}</strong></div>
+          <div><span>LOCATION</span><strong>{{ profile.location or 'NOT YET ARCHIVED' }}</strong></div>
+          <div><span>STATUS</span><strong class="text-green">TIMELINE ACTIVE</strong></div>
+        </div>
+
+        {% if profile.social_links %}
+        <div class="social-row" aria-label="Social profiles">
+          {% for link in profile.social_links %}
+          <a href="{{ link.url }}" target="_blank" rel="noopener noreferrer" aria-label="{{ link.label }}">
+            {{ icon(link.icon) }}<span>{{ link.label }}</span>
+          </a>
+          {% endfor %}
+        </div>
+        {% endif %}
+      </aside>
+
+      <div class="about-copy" data-reveal>
+        <p class="about-lede">{{ profile.intro or 'This archive is a living record of the work, the people and the moments shaping Annamalai’s timeline.' }}</p>
+
+        <div class="about-bio">
+          {% for paragraph in profile.biography|paragraphs %}
+          <p>{{ paragraph }}</p>
+          {% else %}
+          <p>The biographical record is awaiting entry from the archive control room.</p>
+          {% endfor %}
+        </div>
+
+        {% if profile.philosophy %}
+        <blockquote class="about-quote">
+          <span class="about-quote__mark" aria-hidden="true">“</span>
+          <p>{{ profile.philosophy }}</p>
+          <cite>— FIELD NOTE / ANNAMALAI</cite>
+        </blockquote>
+        {% endif %}
+
+        <div class="about-focus">
+          <span class="mono-label">CURRENT COORDINATES</span>
+          <div class="focus-chips">
+            {% for focus in (profile.focus_areas or 'DEVELOPMENT / TEAMS / COLLABORATION').split('/') %}
+            <span>{{ focus.strip() }}</span>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="about-margin-zone" data-reveal>
+      <div class="margin-note">
+        <span class="margin-note__line" aria-hidden="true"></span>
+        <p class="handwritten">the archive is never finished.<br>it is being written right now.</p>
+        <span class="mono-label">MARGIN NOTE / UNSORTED</span>
+      </div>
+      <div class="document-cluster" aria-label="Hidden archive documents">
+        {{ egg_nodes(eggs_by_section.get('about', [])) }}
+      </div>
+      <span class="about-vertical" aria-hidden="true">IDENTITY / A PERSONAL RECORD</span>
+    </div>
+  </div>
+</section>

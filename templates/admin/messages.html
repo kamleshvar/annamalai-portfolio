@@ -1,0 +1,92 @@
+{% extends "admin/base.html" %}
+{% from "macros/ui.html" import icon %}
+{% from "admin/_macros.html" import empty_state, confirm_form %}
+
+{% block page_title %}Messages{% endblock %}
+
+{% block content %}
+<header class="admin-page-head">
+  <div>
+    <span class="admin-kicker">COMMUNICATION CHANNEL / {{ "%02d"|format(total_count) }} RECEIVED</span>
+    <h1>MESSAGES<span aria-hidden="true">.</span></h1>
+    <p>Signals sent through the public contact form. Messages are stored locally in the archive database.</p>
+  </div>
+  <div class="admin-page-actions">
+    <a class="admin-btn admin-btn--ghost" href="{{ url_for('main.index') }}#contact" target="_blank" rel="noopener">{{ icon('external-link') }}<span>VIEW CONTACT FORM</span></a>
+    {% if unread_count %}
+    <form action="{{ url_for('admin.messages_read_all') }}" method="post" class="admin-inline-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="submit" class="admin-btn admin-btn--primary">{{ icon('check-check') }}<span>MARK ALL READ</span></button>
+    </form>
+    {% endif %}
+  </div>
+</header>
+
+<div class="admin-index-bar">
+  <span><i class="admin-live-dot"></i> {{ "%02d"|format(unread_count) }} UNREAD</span>
+  <span>{{ "%02d"|format(total_count - unread_count) }} READ</span>
+  <span>STORED / SQLITE LOCAL</span>
+</div>
+
+<nav class="admin-filter-tabs" aria-label="Filter messages">
+  <a href="{{ url_for('admin.messages', status='all') }}" class="{% if status == 'all' %}is-active{% endif %}" {% if status == 'all' %}aria-current="page"{% endif %}>
+    ALL <em>{{ total_count }}</em>
+  </a>
+  <a href="{{ url_for('admin.messages', status='unread') }}" class="{% if status == 'unread' %}is-active{% endif %}" {% if status == 'unread' %}aria-current="page"{% endif %}>
+    UNREAD <em>{{ unread_count }}</em>
+  </a>
+  <a href="{{ url_for('admin.messages', status='read') }}" class="{% if status == 'read' %}is-active{% endif %}" {% if status == 'read' %}aria-current="page"{% endif %}>
+    READ <em>{{ total_count - unread_count }}</em>
+  </a>
+</nav>
+
+{% if messages %}
+<div class="admin-message-list">
+  {% for message in messages %}
+  <article class="admin-message{% if not message.is_read %} is-unread{% endif %}" id="message-{{ message.id }}">
+    <div class="admin-message__rail">
+      <span class="admin-message__initial" aria-hidden="true">{{ message.name[:1]|upper }}</span>
+      <span class="admin-message__line" aria-hidden="true"></span>
+      <span class="admin-message__state" title="{{ 'Unread signal' if not message.is_read else 'Read signal' }}">
+        <i class="admin-live-dot{% if message.is_read %} admin-live-dot--muted{% endif %}"></i>
+      </span>
+    </div>
+
+    <div class="admin-message__content">
+      <header class="admin-message__head">
+        <div>
+          <span class="admin-kicker">{{ 'UNREAD SIGNAL' if not message.is_read else 'ARCHIVED SIGNAL' }} / REF {{ "%04d"|format(message.id) }}</span>
+          <h2>{{ message.subject }}</h2>
+          <div class="admin-message__meta">
+            <span>{{ message.name }}</span>
+            <a href="mailto:{{ message.email }}">{{ message.email }} {{ icon('arrow-up-right') }}</a>
+            <time datetime="{{ message.created_at.isoformat() }}">{{ message.created_at|timefmt }}</time>
+          </div>
+        </div>
+        <span class="admin-pill{% if not message.is_read %} admin-pill--signal{% endif %}">{{ 'NEW' if not message.is_read else 'READ' }}</span>
+      </header>
+
+      <div class="admin-message__body">
+        <p>{{ message.message }}</p>
+      </div>
+
+      <footer class="admin-message__actions">
+        <a class="admin-btn admin-btn--ghost admin-btn--sm" href="mailto:{{ message.email }}?subject={{ ('Re: ' ~ message.subject)|urlencode }}">{{ icon('reply') }} REPLY BY EMAIL</a>
+        <form action="{{ url_for('admin.message_unread' if message.is_read else 'admin.message_read', message_id=message.id) }}" method="post" class="admin-inline-form">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="admin-btn admin-btn--ghost admin-btn--sm">{{ icon('mail' if message.is_read else 'mail-open') }} {{ 'MARK UNREAD' if message.is_read else 'MARK READ' }}</button>
+        </form>
+        {{ confirm_form(url_for('admin.message_delete', message_id=message.id), 'Delete the message “' ~ message.subject ~ '” from ' ~ message.name ~ '? This cannot be undone.', 'DELETE') }}
+      </footer>
+    </div>
+  </article>
+  {% endfor %}
+</div>
+{% elif status == 'unread' %}
+{{ empty_state('NO UNREAD SIGNALS.', 'Every message in the archive has been opened. New contact submissions will appear here.', url_for('admin.messages', status='all'), 'VIEW ALL MESSAGES', 'mail-open') }}
+{% elif status == 'read' %}
+{{ empty_state('NO READ SIGNALS.', 'Messages appear here after they have been opened.', url_for('admin.messages', status='unread'), 'VIEW UNREAD MESSAGES', 'mail') }}
+{% else %}
+{{ empty_state('NO SIGNALS RECEIVED.', 'The contact form has not received a message yet. Real submissions will appear here immediately.', url_for('main.index') ~ '#contact', 'OPEN PUBLIC CONTACT FORM', 'mail') }}
+{% endif %}
+{% endblock %}

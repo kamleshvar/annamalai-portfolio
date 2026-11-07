@@ -1,0 +1,106 @@
+{% from "macros/ui.html" import icon, section_meta, expressive_title, egg_nodes, empty_record %}
+<section class="section section--achievements" id="achievements" data-archive-section="achievements">
+  <div class="container">
+    {{ section_meta('03', 'TIMELINE COORDINATES', 'RECORDS / ' ~ achievements|length) }}
+
+    <div class="section-heading-row">
+      <div data-reveal>
+        <h2 class="section-title">{{ expressive_title(site.achievements_heading) }}</h2>
+        <p class="section-intro">{{ site.achievements_intro }}</p>
+      </div>
+      <div class="section-aside technical-card" data-reveal>
+        <span class="mono-label">TIMELINE DENSITY</span>
+        <strong>{{ "%02d"|format(achievements|length) }}</strong>
+        <div class="mini-bars" aria-hidden="true">
+          {% for achievement in achievements %}
+          <i style="--bar: {{ 35 + (loop.index0 * 17) % 65 }}%"></i>
+          {% else %}
+          <i style="--bar: 20%"></i>
+          {% endfor %}
+        </div>
+        <span class="technical-card__foot">ARCHIVE VERIFIED / {{ current_year }}</span>
+      </div>
+    </div>
+
+    {% if achievements %}
+    <div class="timeline-shell" data-timeline>
+      <div class="timeline-ruler" aria-hidden="true">
+        <span>ORIGIN</span>
+        <span class="timeline-ruler__line"><i data-timeline-line></i></span>
+        <span>PRESENT</span>
+      </div>
+
+      <ol class="timeline-list">
+        {% for achievement in achievements %}
+        <li class="timeline-item" data-reveal>
+          <div class="timeline-node" aria-hidden="true">
+            <span>{{ "%02d"|format(loop.index) }}</span>
+          </div>
+
+          <details class="timeline-record">
+            <summary class="timeline-summary">
+              <span class="timeline-position">{{ achievement.position or 'RECORDED' }}</span>
+              <span class="timeline-main">
+                <span class="timeline-meta">
+                  <span>{{ achievement.year or 'YEAR / UNRECORDED' }}</span>
+                  <span class="timeline-meta__dot"></span>
+                  <span>COORDINATE {{ "%02d"|format(loop.index) }}</span>
+                </span>
+                <span class="timeline-title">{{ achievement.title }}</span>
+                {% if achievement.description %}
+                <span class="timeline-description">{{ achievement.description|truncate(150, True, '…') }}</span>
+                {% endif %}
+                <span class="timeline-reveal">
+                  {{ icon('plus') }} OPEN ARCHIVE RECORD
+                  <em>{% if achievement.certificate_image or achievement.event_image %}VISUAL RECORD ATTACHED{% else %}TEXT RECORD ONLY{% endif %}</em>
+                </span>
+              </span>
+              <span class="timeline-year">{{ achievement.year or '—' }}</span>
+            </summary>
+
+            <div class="timeline-detail">
+              <div class="timeline-detail__notes">
+                <span class="mono-label">FIELD NOTES / {{ "%02d"|format(loop.index) }}</span>
+                <p>{{ achievement.description or 'No additional field notes have been catalogued for this record.' }}</p>
+                <div class="record-flags">
+                  <span><i class="status-dot"></i> VERIFIED RESULT</span>
+                  <span>{{ achievement.position or 'POSITION UNLOGGED' }}</span>
+                </div>
+              </div>
+              <div class="timeline-detail__media">
+                {% if achievement.certificate_image or achievement.event_image %}
+                  {% if achievement.certificate_image %}
+                  <a class="record-image" href="{{ url_for('main.uploaded_file', filename=achievement.certificate_image) }}" target="_blank" rel="noopener noreferrer">
+                    <img src="{{ url_for('main.uploaded_file', filename=achievement.certificate_image) }}" alt="Certificate for {{ achievement.title }}" loading="lazy" decoding="async">
+                    <span>CERTIFICATE {{ icon('maximize-2') }}</span>
+                  </a>
+                  {% endif %}
+                  {% if achievement.event_image %}
+                  <a class="record-image" href="{{ url_for('main.uploaded_file', filename=achievement.event_image) }}" target="_blank" rel="noopener noreferrer">
+                    <img src="{{ url_for('main.uploaded_file', filename=achievement.event_image) }}" alt="Event photograph for {{ achievement.title }}" loading="lazy" decoding="async">
+                    <span>EVENT FRAME {{ icon('maximize-2') }}</span>
+                  </a>
+                  {% endif %}
+                {% else %}
+                  {{ empty_record('VISUAL RECORD', 'AWAITING UPLOAD') }}
+                {% endif %}
+              </div>
+            </div>
+          </details>
+        </li>
+        {% endfor %}
+      </ol>
+    </div>
+    {% else %}
+    <div class="archive-empty" data-reveal>
+      <span class="archive-empty__code">03 / EMPTY</span>
+      <h3>NO COORDINATES RECORDED YET.</h3>
+      <p>The achievement timeline is waiting for its first entry. New records appear here automatically from the control room.</p>
+    </div>
+    {% endif %}
+
+    <div class="section-float-zone">
+      {{ egg_nodes(eggs_by_section.get('achievements', [])) }}
+    </div>
+  </div>
+</section>

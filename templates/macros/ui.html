@@ -1,0 +1,57 @@
+{# Reusable archive UI primitives #}
+
+{% macro icon(name, class_name='icon') -%}
+<svg class="icon {{ class_name }}" aria-hidden="true" focusable="false"><use href="{{ url_for('static', filename='vendor/lucide-sprite.svg') }}#{{ name }}"></use></svg>
+{%- endmacro %}
+
+{% macro expressive_title(text) -%}
+  {%- set words = (text or 'UNTITLED RECORD').split() -%}
+  {%- for word in words -%}
+    <span class="title-word{% if loop.last and words|length > 1 %} title-word--accent{% endif %}">{{ word }}</span>{% if not loop.last %} {% endif %}
+  {%- endfor -%}
+{%- endmacro %}
+
+{% macro section_meta(index, label, status='SYS / ACTIVE', status_id=None) -%}
+<div class="section-meta">
+  <span class="section-index">{{ index }}</span>
+  <span class="section-label">{{ label }}</span>
+  <span class="section-rule" aria-hidden="true"></span>
+  <span class="section-status"><i class="status-dot" aria-hidden="true"></i><span{% if status_id %} id="{{ status_id }}"{% endif %}>{{ status }}</span></span>
+</div>
+{%- endmacro %}
+
+{% macro egg_nodes(eggs) -%}
+  {% for egg in eggs if egg.interaction_type != 'artifact' %}
+  <button type="button"
+          class="egg-node egg-node--{{ egg.interaction_type }}"
+          data-secret-trigger
+          data-egg-title="{{ egg.title }}"
+          data-egg-label="{{ egg.interaction_type|upper }} / HIDDEN RECORD"
+          data-egg-message="{{ egg.message }}"
+          {% if egg.access_code and egg.access_slot %}data-egg-fragment="{{ egg.access_code }}" data-egg-slot="{{ egg.access_slot }}"{% endif %}
+          aria-label="Open hidden archive record: {{ egg.title }}">
+    <span class="egg-node__signal" aria-hidden="true"></span>
+    <span class="egg-node__icon" aria-hidden="true">
+      {% if egg.interaction_type == 'document' %}{{ icon('file-text') }}
+      {% elif egg.interaction_type == 'terminal' %}{{ icon('terminal') }}
+      {% else %}{{ icon('sparkles') }}{% endif %}
+    </span>
+    <span class="egg-node__label">{{ egg.title }}</span>
+  </button>
+  {% endfor %}
+{%- endmacro %}
+
+{% macro empty_record(label='VISUAL RECORD', detail='AWAITING UPLOAD') -%}
+<div class="empty-record" aria-hidden="true">
+  <span class="empty-record__cross">+</span>
+  <span class="empty-record__label">{{ label }}</span>
+  <span class="empty-record__detail">{{ detail }}</span>
+  <span class="empty-record__cross">+</span>
+</div>
+{%- endmacro %}
+
+{% macro external_link(url, label, class_name='link-arrow') -%}
+  {% if url %}
+  <a class="{{ class_name }}" href="{{ url }}" target="_blank" rel="noopener noreferrer">{{ label }} {{ icon('arrow-up-right') }}</a>
+  {% endif %}
+{%- endmacro %}

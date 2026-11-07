@@ -1,0 +1,155 @@
+{% from "macros/ui.html" import icon %}
+<!doctype html>
+<html lang="en" class="no-js">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>{% block title %}{{ site.site_title }} — {{ site.site_subtitle }}{% endblock %}</title>
+  <meta name="description" content="{{ site.meta_description or site.site_subtitle }}">
+  <meta name="theme-color" content="{{ site.color_bg }}">
+  <meta name="color-scheme" content="dark">
+  <meta property="og:title" content="{{ site.site_title }} — {{ site.site_subtitle }}">
+  <meta property="og:description" content="{{ site.meta_description or site.site_subtitle }}">
+  <meta property="og:type" content="website">
+  <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='images/favicon.svg') }}">
+  <link rel="preload" href="{{ url_for('static', filename='fonts/anton-normal-400-latin.woff2') }}" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="{{ url_for('static', filename='fonts/space-mono-normal-400-latin.woff2') }}" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="{{ url_for('static', filename='fonts/fonts.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  <script src="{{ url_for('static', filename='js/theme-init.js') }}"></script>
+  <style>
+    :root {
+      --bg-0: {{ site.color_bg|e }};
+      --bg-1: {{ site.color_panel|e }};
+      --red: {{ site.color_red|e }};
+      --copper: {{ site.color_copper|e }};
+      --green: {{ site.color_green|e }};
+      --green-light: {{ site.color_green_light|e }};
+      --paper: {{ site.color_text|e }};
+      --muted: {{ site.color_muted|e }};
+      --highlight: {{ site.color_highlight|e }};
+    }
+  </style>
+</head>
+<body class="archive-body{% if not site.animations_enabled %} no-motion{% endif %}"
+      data-animations="{{ 'true' if site.animations_enabled else 'false' }}"
+      data-grain="{{ 'true' if site.grain_enabled else 'false' }}"
+      data-scanlines="{{ 'true' if site.scanlines_enabled else 'false' }}"
+      data-timezone="{{ config.SITE_TIMEZONE }}">
+  <a class="skip-link" href="#main">Skip to archive content</a>
+
+  {% if site.grain_enabled %}<div class="texture-grain" aria-hidden="true"></div>{% endif %}
+  {% if site.scanlines_enabled %}<div class="texture-scanlines" aria-hidden="true"></div>{% endif %}
+  <div class="page-vignette" aria-hidden="true"></div>
+  <div class="archive-frame" aria-hidden="true">
+    <i></i><i></i><i></i><i></i>
+  </div>
+
+  {% if site.animations_enabled %}
+  <div class="boot-screen" id="boot-screen" aria-hidden="true">
+    <div class="boot-screen__lines"></div>
+    <div class="boot-screen__inner">
+      <div class="boot-sigil"><span></span><span></span><span></span><b>A</b></div>
+      <p class="boot-kicker">ANNAMALAI ARCHIVE</p>
+      <p class="boot-sub">RECONSTRUCTING TIMELINE / A-001</p>
+      <div class="boot-progress"><span id="boot-progress-bar"></span></div>
+      <div class="boot-meta"><span>INITIALIZING ARCHIVE</span><span id="boot-percent">00%</span></div>
+    </div>
+    <span class="boot-corner boot-corner--tl"></span>
+    <span class="boot-corner boot-corner--br"></span>
+  </div>
+  {% endif %}
+
+  <header class="archive-nav" id="archive-nav">
+    <div class="archive-nav__inner">
+      <a class="brand" href="{{ url_for('main.index') }}#home" aria-label="{{ site.site_title }} — home">
+        <span class="brand-sigil" aria-hidden="true"><b>{{ site.site_title[:1] }}</b><i></i><i></i></span>
+        <span class="brand-copy">
+          <span class="brand-name">{{ site.site_title }}</span>
+          <span class="brand-sub">{{ site.archive_code }}</span>
+        </span>
+      </a>
+
+      <nav class="desktop-nav" aria-label="Archive sections">
+        {% set nav_items = [
+          ('home', 'HOME', '01', true),
+          ('about', 'ABOUT', '02', site.show_about),
+          ('achievements', 'ACHIEVEMENTS', '03', site.show_achievements),
+          ('teams', 'TEAMS', '04', site.show_teams),
+          ('projects', 'PROJECTS', '05', site.show_projects),
+          ('people', 'PEOPLE', '06', site.show_people),
+          ('gallery', 'GALLERY', '07', site.show_gallery),
+          ('contact', 'CONTACT', '08', site.show_contact)
+        ] %}
+        {% for anchor, label, number, visible in nav_items if visible %}
+        <a class="nav-link" href="#{{ anchor }}" data-nav-link="{{ anchor }}">
+          <span class="nav-link__number">{{ number }}</span><span class="nav-link__label">{{ label }}</span>
+        </a>
+        {% endfor %}
+      </nav>
+
+      <div class="nav-tools">
+        <span class="system-chip" title="Archive system status">
+          <i class="status-dot" aria-hidden="true"></i>
+          <span>SYS / ONLINE</span>
+        </span>
+        <button type="button" class="icon-button mode-toggle" data-mode-toggle aria-pressed="false" title="Toggle green focus mode" aria-label="Toggle green focus mode">
+          {{ icon('aperture') }}
+        </button>
+        <button type="button" class="icon-button nav-menu-button" data-nav-toggle aria-expanded="false" aria-controls="mobile-menu" aria-label="Open navigation menu">
+          <span class="menu-lines" aria-hidden="true"><i></i><i></i></span>
+        </button>
+      </div>
+    </div>
+    <div class="nav-progress" aria-hidden="true"><span id="nav-progress-bar"></span></div>
+  </header>
+
+  <div class="mobile-menu" id="mobile-menu" hidden>
+    <div class="mobile-menu__backdrop" data-nav-close></div>
+    <div class="mobile-menu__panel" role="dialog" aria-modal="true" aria-label="Archive navigation">
+      <div class="mobile-menu__head">
+        <span class="mono-label">{{ site.archive_code }}</span>
+        <button type="button" class="icon-button" data-nav-close aria-label="Close navigation menu">{{ icon('x') }}</button>
+      </div>
+      <nav class="mobile-nav" aria-label="Mobile archive navigation">
+        {% for anchor, label, number, visible in nav_items if visible %}
+        <a class="mobile-nav__link" href="#{{ anchor }}" data-mobile-nav-link="{{ anchor }}">
+          <span>{{ number }}</span><strong>{{ label }}</strong>{{ icon('arrow-up-right') }}
+        </a>
+        {% endfor %}
+      </nav>
+      <div class="mobile-menu__foot">
+        <span><i class="status-dot"></i> SYSTEM ONLINE</span>
+        <span>TIMELINE / ACTIVE</span>
+        <button type="button" class="mode-link" data-mode-toggle>GREEN FOCUS MODE</button>
+      </div>
+    </div>
+  </div>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="toast-stack" id="toast-stack" aria-live="polite">
+      {% for category, message in messages %}
+      <div class="archive-toast archive-toast--{{ category }}" role="status">
+        <span class="archive-toast__mark">{% if category == 'error' %}!{% elif category == 'warning' %}△{% else %}✓{% endif %}</span>
+        <p>{{ message }}</p>
+        <button type="button" data-toast-close aria-label="Dismiss message">{{ icon('x') }}</button>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  {% endwith %}
+
+  <main id="main">
+    {% block content %}{% endblock %}
+  </main>
+
+  {% include "partials/modal-secret.html" %}
+  {% include "partials/terminal.html" %}
+  {% include "partials/lightbox.html" %}
+
+  <script src="{{ url_for('static', filename='vendor/gsap.min.js') }}" defer></script>
+  <script src="{{ url_for('static', filename='vendor/ScrollTrigger.min.js') }}" defer></script>
+  <script src="{{ url_for('static', filename='js/main.js') }}" defer></script>
+</body>
+</html>

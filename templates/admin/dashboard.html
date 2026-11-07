@@ -1,0 +1,205 @@
+{% extends "admin/base.html" %}
+{% from "macros/ui.html" import icon %}
+{% from "admin/_macros.html" import empty_state %}
+
+{% block page_title %}Overview{% endblock %}
+
+{% block content %}
+<header class="admin-page-head">
+  <div>
+    <span class="admin-kicker">ARCHIVE CONTROL / 01</span>
+    <h1>OVERVIEW<span aria-hidden="true">.</span></h1>
+    <p>Live records from the archive database. Every number on this page is calculated from stored content — nothing is simulated.</p>
+  </div>
+  <div class="admin-page-actions">
+    <a class="admin-btn admin-btn--ghost" href="{{ url_for('main.index') }}" target="_blank" rel="noopener">{{ icon('external-link') }}<span>OPEN PUBLIC ARCHIVE</span></a>
+    <a class="admin-btn admin-btn--primary" href="{{ url_for('admin.project_new') }}">{{ icon('plus') }}<span>NEW PROJECT</span></a>
+  </div>
+</header>
+
+<div class="admin-stat-grid">
+  <a class="admin-stat" href="{{ url_for('admin.projects') }}">
+    <span class="admin-stat__label">PROJECTS</span>
+    <strong>{{ "%02d"|format(stats.projects) }}</strong>
+    <span class="admin-stat__foot">PUBLIC OBJECTS {{ icon('arrow-up-right') }}</span>
+  </a>
+  <a class="admin-stat" href="{{ url_for('admin.achievements') }}">
+    <span class="admin-stat__label">ACHIEVEMENTS</span>
+    <strong>{{ "%02d"|format(stats.achievements) }}</strong>
+    <span class="admin-stat__foot">TIMELINE RECORDS {{ icon('arrow-up-right') }}</span>
+  </a>
+  <a class="admin-stat" href="{{ url_for('admin.gallery') }}">
+    <span class="admin-stat__label">GALLERY FRAMES</span>
+    <strong>{{ "%02d"|format(stats.gallery_images) }}</strong>
+    <span class="admin-stat__foot">{{ "%02d"|format(stats.gallery_categories) }} CATEGORIES {{ icon('arrow-up-right') }}</span>
+  </a>
+  <a class="admin-stat" href="{{ url_for('admin.collaborators') }}">
+    <span class="admin-stat__label">COLLABORATORS</span>
+    <strong>{{ "%02d"|format(stats.collaborators) }}</strong>
+    <span class="admin-stat__foot">PEOPLE RECORDS {{ icon('arrow-up-right') }}</span>
+  </a>
+  <a class="admin-stat" href="{{ url_for('admin.organizations') }}">
+    <span class="admin-stat__label">ORGANIZATIONS</span>
+    <strong>{{ "%02d"|format(stats.organizations) }}</strong>
+    <span class="admin-stat__foot">TEAM REGISTRY {{ icon('arrow-up-right') }}</span>
+  </a>
+  <a class="admin-stat" href="{{ url_for('admin.messages') }}">
+    <span class="admin-stat__label">UNREAD SIGNALS</span>
+    <strong class="{% if stats.unread_messages %}is-signal{% endif %}">{{ "%02d"|format(stats.unread_messages) }}</strong>
+    <span class="admin-stat__foot">{{ "%02d"|format(stats.messages) }} TOTAL MESSAGES {{ icon('arrow-up-right') }}</span>
+  </a>
+</div>
+
+<div class="admin-dashboard-grid">
+  <section class="admin-card admin-card--wide" aria-labelledby="recent-signals-title">
+    <header class="admin-card__head">
+      <div>
+        <span class="admin-kicker">COMMUNICATION CHANNEL</span>
+        <h2 id="recent-signals-title">RECENT SIGNALS</h2>
+      </div>
+      <a href="{{ url_for('admin.messages') }}" class="admin-text-link">ALL MESSAGES {{ icon('arrow-right') }}</a>
+    </header>
+    {% if recent_messages %}
+    <div class="admin-signal-list">
+      {% for message in recent_messages %}
+      <a class="admin-signal{% if not message.is_read %} is-unread{% endif %}" href="{{ url_for('admin.messages') }}#message-{{ message.id }}">
+        <span class="admin-signal__dot" aria-hidden="true"></span>
+        <span class="admin-signal__copy">
+          <strong>{{ message.subject }}</strong>
+          <span>{{ message.name }} / {{ message.email }}</span>
+        </span>
+        <time datetime="{{ message.created_at.isoformat() }}">{{ message.created_at|timefmt }}</time>
+        <span class="admin-pill{% if not message.is_read %} admin-pill--signal{% endif %}">{{ 'NEW' if not message.is_read else 'READ' }}</span>
+      </a>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="admin-empty admin-empty--compact">
+      <span class="admin-empty__icon">{{ icon('mail') }}</span>
+      <h3>NO SIGNALS RECEIVED.</h3>
+      <p>Messages sent through the public contact form will appear here.</p>
+    </div>
+    {% endif %}
+  </section>
+
+  <aside class="admin-card admin-card--system" aria-labelledby="system-title">
+    <header class="admin-card__head">
+      <div>
+        <span class="admin-kicker">SYSTEM VITALS</span>
+        <h2 id="system-title">CONTROL STATE</h2>
+      </div>
+      <span class="admin-pill admin-pill--online"><i class="admin-live-dot"></i> ONLINE</span>
+    </header>
+    <dl class="admin-vitals">
+      <div><dt>DATABASE</dt><dd>SQLITE / LOCAL</dd></div>
+      <div><dt>PUBLIC SECTIONS</dt><dd>9 CONFIGURED</dd></div>
+      <div><dt>HIDDEN RECORDS</dt><dd>{{ "%02d"|format(stats.easter_eggs) }} ENABLED</dd></div>
+      <div><dt>UPLOAD LIMIT</dt><dd>{{ max_upload_mb }} MB / REQUEST</dd></div>
+      <div><dt>TIMEZONE</dt><dd>{{ config.SITE_TIMEZONE }}</dd></div>
+      <div><dt>SERVER TIME</dt><dd>{{ now|timefmt }}</dd></div>
+      <div><dt>LAST LOGIN</dt><dd>{{ current_admin.last_login_at|timefmt if current_admin.last_login_at else 'FIRST SESSION' }}</dd></div>
+    </dl>
+    <div class="admin-vitals__actions">
+      <a href="{{ url_for('main.healthz') }}" target="_blank" rel="noopener" class="admin-btn admin-btn--ghost admin-btn--sm">{{ icon('activity') }} HEALTH CHECK</a>
+      <a href="{{ url_for('admin.appearance') }}" class="admin-btn admin-btn--ghost admin-btn--sm">{{ icon('palette') }} APPEARANCE</a>
+    </div>
+  </aside>
+
+  <section class="admin-card" aria-labelledby="recent-projects-title">
+    <header class="admin-card__head">
+      <div>
+        <span class="admin-kicker">OBJECT INDEX</span>
+        <h2 id="recent-projects-title">RECENT PROJECTS</h2>
+      </div>
+      <a href="{{ url_for('admin.projects') }}" class="admin-text-link">ALL {{ icon('arrow-right') }}</a>
+    </header>
+    {% if recent_projects %}
+    <div class="admin-compact-list">
+      {% for project in recent_projects %}
+      <a href="{{ url_for('admin.project_edit', project_id=project.id) }}" class="admin-compact-row">
+        <span class="admin-compact-row__index">{{ "%02d"|format(loop.index) }}</span>
+        <span class="admin-compact-row__copy">
+          <strong>{{ project.title }}</strong>
+          <em>{{ project.tagline or 'NO TAGLINE RECORDED' }}</em>
+        </span>
+        {% if project.featured %}<span class="admin-pill admin-pill--featured">FEATURED</span>{% endif %}
+        {{ icon('arrow-up-right') }}
+      </a>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="admin-empty-line">No projects recorded. <a href="{{ url_for('admin.project_new') }}">Create the first object.</a></p>
+    {% endif %}
+  </section>
+
+  <section class="admin-card" aria-labelledby="recent-achievements-title">
+    <header class="admin-card__head">
+      <div>
+        <span class="admin-kicker">TIMELINE COORDINATES</span>
+        <h2 id="recent-achievements-title">RECENT ACHIEVEMENTS</h2>
+      </div>
+      <a href="{{ url_for('admin.achievements') }}" class="admin-text-link">ALL {{ icon('arrow-right') }}</a>
+    </header>
+    {% if recent_achievements %}
+    <div class="admin-compact-list">
+      {% for achievement in recent_achievements %}
+      <a href="{{ url_for('admin.achievement_edit', achievement_id=achievement.id) }}" class="admin-compact-row">
+        <span class="admin-compact-row__index">{{ achievement.year or '—' }}</span>
+        <span class="admin-compact-row__copy">
+          <strong>{{ achievement.title }}</strong>
+          <em>{{ achievement.position or 'POSITION UNRECORDED' }}</em>
+        </span>
+        {{ icon('arrow-up-right') }}
+      </a>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="admin-empty-line">No achievements recorded. <a href="{{ url_for('admin.achievement_new') }}">Add a coordinate.</a></p>
+    {% endif %}
+  </section>
+
+  <section class="admin-card" aria-labelledby="recent-hidden-title">
+    <header class="admin-card__head">
+      <div>
+        <span class="admin-kicker">HIDDEN RECORDS</span>
+        <h2 id="recent-hidden-title">EASTER EGGS</h2>
+      </div>
+      <a href="{{ url_for('admin.easter_eggs') }}" class="admin-text-link">ALL {{ icon('arrow-right') }}</a>
+    </header>
+    {% if recent_eggs %}
+    <div class="admin-compact-list">
+      {% for egg in recent_eggs %}
+      <a href="{{ url_for('admin.easter_egg_edit', egg_id=egg.id) }}" class="admin-compact-row">
+        <span class="admin-compact-row__index">{{ icon('sparkles') }}</span>
+        <span class="admin-compact-row__copy">
+          <strong>{{ egg.title }}</strong>
+          <em>{{ egg.section|upper }} / {{ egg.interaction_type|upper }}</em>
+        </span>
+        <span class="admin-pill {% if egg.enabled %}admin-pill--online{% else %}admin-pill--muted{% endif %}">{{ 'LIVE' if egg.enabled else 'SEALED' }}</span>
+        {{ icon('arrow-up-right') }}
+      </a>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="admin-empty-line">No hidden records. <a href="{{ url_for('admin.easter_egg_new') }}">Create one.</a></p>
+    {% endif %}
+  </section>
+
+  <section class="admin-card admin-card--quick" aria-labelledby="quick-actions-title">
+    <header class="admin-card__head">
+      <div>
+        <span class="admin-kicker">SHORTCUTS</span>
+        <h2 id="quick-actions-title">QUICK ACTIONS</h2>
+      </div>
+    </header>
+    <div class="admin-quick-grid">
+      <a href="{{ url_for('admin.achievement_new') }}">{{ icon('trophy') }}<span>NEW<br>ACHIEVEMENT</span></a>
+      <a href="{{ url_for('admin.organization_new') }}">{{ icon('building-2') }}<span>NEW<br>ORGANIZATION</span></a>
+      <a href="{{ url_for('admin.collaborator_new') }}">{{ icon('user-plus') }}<span>NEW<br>COLLABORATOR</span></a>
+      <a href="{{ url_for('admin.gallery') }}">{{ icon('image-plus') }}<span>UPLOAD<br>FRAMES</span></a>
+      <a href="{{ url_for('admin.appearance') }}">{{ icon('palette') }}<span>EDIT<br>APPEARANCE</span></a>
+      <a href="{{ url_for('admin.easter_egg_new') }}">{{ icon('sparkles') }}<span>NEW<br>HIDDEN RECORD</span></a>
+    </div>
+  </section>
+</div>
+{% endblock %}

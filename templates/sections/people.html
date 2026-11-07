@@ -1,0 +1,68 @@
+{% from "macros/ui.html" import icon, section_meta, expressive_title, egg_nodes %}
+<section class="section section--people" id="people" data-archive-section="people">
+  <div class="container">
+    {{ section_meta('06', 'CONSTELLATION REGISTRY', 'CONTACTS / ' ~ collaborators|length) }}
+
+    <div class="section-heading-row">
+      <div data-reveal>
+        <h2 class="section-title">{{ expressive_title(site.people_heading) }}</h2>
+        <p class="section-intro">{{ site.people_intro }}</p>
+      </div>
+      <p class="handwritten section-handwriting" data-reveal>no one builds<br>a timeline alone.</p>
+    </div>
+
+    {% if collaborators %}
+    <div class="people-grid">
+      {% for person in collaborators %}
+      <article class="person-card" data-reveal>
+        <div class="person-card__media">
+          {% if person.photo %}
+          <img src="{{ url_for('main.uploaded_file', filename=person.photo) }}" alt="Portrait of {{ person.name }}" loading="lazy" decoding="async">
+          {% else %}
+          <div class="person-monogram" aria-label="{{ person.name }} monogram">
+            <span class="person-monogram__ring" aria-hidden="true"></span>
+            <b>{{ person.initials }}</b>
+            <span class="person-monogram__label mono-label">PORTRAIT / PENDING</span>
+            <span class="person-monogram__scan" aria-hidden="true"></span>
+          </div>
+          {% endif %}
+          <span class="person-card__index mono-label">{{ "%02d"|format(loop.index) }}</span>
+          <span class="person-card__corner person-card__corner--tl" aria-hidden="true"></span>
+          <span class="person-card__corner person-card__corner--br" aria-hidden="true"></span>
+        </div>
+        <div class="person-card__body">
+          <span class="mono-label">TIMELINE CONTACT / {{ "%02d"|format(loop.index) }}</span>
+          <h3>{{ person.name }}</h3>
+          {% if person.description %}
+          <p>{{ person.description }}</p>
+          {% else %}
+          <p class="record-pending">ARCHIVE NOTE // AWAITING ENTRY</p>
+          {% endif %}
+          <div class="person-card__footer">
+            {% if person.website %}
+            <a href="{{ person.website }}" target="_blank" rel="noopener noreferrer">
+              <span>{{ person.website|replace('https://', '')|replace('http://', '')|trim('/')|truncate(28, True, '…') }}</span>
+              {{ icon('arrow-up-right') }}
+            </a>
+            {% else %}
+            <span class="record-pending record-pending--small">EXTERNAL COORDINATE / UNLISTED</span>
+            {% endif %}
+            <span class="person-card__signal" aria-hidden="true"><i></i><i></i><i></i></span>
+          </div>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="archive-empty" data-reveal>
+      <span class="archive-empty__code">06 / EMPTY</span>
+      <h3>NO CONTACTS IN THE CONSTELLATION.</h3>
+      <p>The people register is waiting for its first entry.</p>
+    </div>
+    {% endif %}
+
+    <div class="section-float-zone">
+      {{ egg_nodes(eggs_by_section.get('people', [])) }}
+    </div>
+  </div>
+</section>

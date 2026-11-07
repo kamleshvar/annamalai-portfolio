@@ -1,0 +1,101 @@
+{% from "macros/ui.html" import icon, section_meta, expressive_title, egg_nodes %}
+<section class="section section--contact" id="contact" data-archive-section="contact">
+  <div class="container">
+    {{ section_meta('08', 'COMMUNICATION CHANNEL', 'SIGNAL / RECEIVING') }}
+
+    <div class="contact-layout">
+      <div class="contact-copy" data-reveal>
+        <h2 class="section-title">{{ expressive_title(site.contact_heading) }}</h2>
+        <p class="section-intro">{{ site.contact_intro }}</p>
+
+        <div class="contact-channels">
+          {% if profile.email %}
+          <a class="contact-channel" href="mailto:{{ profile.email }}">
+            <span class="contact-channel__icon">{{ icon('mail') }}</span>
+            <span><em>DIRECT SIGNAL</em><strong>{{ profile.email }}</strong></span>
+            {{ icon('arrow-up-right') }}
+          </a>
+          {% endif %}
+          {% if profile.phone %}
+          <a class="contact-channel" href="tel:{{ profile.phone }}">
+            <span class="contact-channel__icon">{{ icon('phone') }}</span>
+            <span><em>VOICE CHANNEL</em><strong>{{ profile.phone }}</strong></span>
+            {{ icon('arrow-up-right') }}
+          </a>
+          {% endif %}
+          {% if not profile.email and not profile.phone %}
+          <div class="contact-channel contact-channel--static">
+            <span class="contact-channel__icon">{{ icon('radio') }}</span>
+            <span><em>DIRECT CHANNEL</em><strong>USE THE TRANSMISSION FORM</strong></span>
+            <span class="contact-channel__live"><i class="status-dot"></i> OPEN</span>
+          </div>
+          {% endif %}
+        </div>
+
+        {% if profile.social_links %}
+        <div class="contact-socials">
+          <span class="mono-label">EXTERNAL COORDINATES</span>
+          <div>
+            {% for link in profile.social_links %}
+            <a href="{{ link.url }}" target="_blank" rel="noopener noreferrer">{{ link.label }} {{ icon('arrow-up-right') }}</a>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        <div class="contact-meta">
+          <div><span>ARCHIVE ADDRESS</span><strong>{{ site.archive_code }}</strong></div>
+          <div><span>RESPONSE WINDOW</span><strong>OPEN / ASYNCHRONOUS</strong></div>
+          <div><span>MESSAGE STORAGE</span><strong>PRIVATE CONTROL ROOM</strong></div>
+        </div>
+
+        <p class="contact-note handwritten">every good timeline starts<br>with a conversation.</p>
+      </div>
+
+      <div class="contact-form-panel" data-reveal>
+        <div class="contact-form-panel__head">
+          <span class="mono-label">TRANSMISSION / PUBLIC TERMINAL</span>
+          <span><i class="status-dot"></i> CHANNEL OPEN</span>
+        </div>
+        <form class="archive-form contact-form" method="post" action="{{ url_for('contact.send_message') }}">
+          {{ contact_form.hidden_tag() }}
+          <div class="visually-hidden" aria-hidden="true">
+            {{ contact_form.website(id="contact-website", tabindex="-1", autocomplete="off") }}
+          </div>
+          <div class="form-field-grid">
+            <div class="form-field">
+              <label for="contact-name"><span>01</span> YOUR NAME</label>
+              {{ contact_form.name(id="contact-name", autocomplete="name", placeholder="IDENTIFY YOURSELF", maxlength="120", required=True) }}
+            </div>
+            <div class="form-field">
+              <label for="contact-email"><span>02</span> EMAIL</label>
+              {{ contact_form.email(id="contact-email", autocomplete="email", placeholder="RETURN COORDINATE", maxlength="180", required=True) }}
+            </div>
+          </div>
+          <div class="form-field">
+            <label for="contact-subject"><span>03</span> SUBJECT</label>
+            {{ contact_form.subject(id="contact-subject", placeholder="WHAT IS THIS SIGNAL ABOUT?", maxlength="180", required=True) }}
+          </div>
+          <div class="form-field">
+            <label for="contact-message"><span>04</span> MESSAGE</label>
+            {{ contact_form.message(id="contact-message", placeholder="LEAVE A MESSAGE FOR THE ARCHIVE...", maxlength="4000", rows="6", required=True) }}
+          </div>
+          <div class="contact-form__foot">
+            <p>Signals are stored securely in the archive's private control room. No third-party tracking, no automated marketing.</p>
+            <button class="btn btn--primary contact-submit" type="submit">
+              <span>TRANSMIT SIGNAL</span>{{ icon('send') }}
+            </button>
+          </div>
+        </form>
+        <div class="contact-form-panel__foot">
+          <span>ENCRYPTED TRANSPORT / LOCAL ARCHIVE</span>
+          <span>FORM // v2.1</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-float-zone">
+      {{ egg_nodes(eggs_by_section.get('contact', [])) }}
+    </div>
+  </div>
+</section>

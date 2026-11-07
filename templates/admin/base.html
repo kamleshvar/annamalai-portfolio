@@ -1,0 +1,144 @@
+{% from "macros/ui.html" import icon %}
+{% macro nav_link(endpoint, label, icon_name, prefix=None, extra=None, badge=None) -%}
+  {% set current = request.endpoint or '' %}
+  {% set active = current == endpoint or (prefix is not none and current.startswith(prefix)) or (extra is not none and current == extra) %}
+  <a href="{{ url_for(endpoint) }}" class="admin-nav__link{% if active %} is-active{% endif %}" {% if active %}aria-current="page"{% endif %}>
+    {{ icon(icon_name) }}
+    <span>{{ label }}</span>
+    {% if badge %}<em class="admin-nav__badge">{{ badge }}</em>{% endif %}
+  </a>
+{%- endmacro %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>{% block title %}{{ self.page_title() }} — ANNAMALAI CONTROL ROOM{% endblock %}</title>
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#080a09">
+  <meta name="color-scheme" content="dark">
+  <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='images/favicon.svg') }}">
+  <link rel="preload" href="{{ url_for('static', filename='fonts/anton-normal-400-latin.woff2') }}" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="{{ url_for('static', filename='fonts/space-mono-normal-400-latin.woff2') }}" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="{{ url_for('static', filename='fonts/fonts.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+</head>
+<body class="admin-body">
+  <a class="admin-skip" href="#admin-content">Skip to control room content</a>
+
+  <div class="admin-shell">
+    <aside class="admin-sidebar" id="admin-sidebar" aria-label="Control room navigation">
+      <div class="admin-brand">
+        <span class="admin-brand__sigil" aria-hidden="true"><b>A</b><i></i><i></i></span>
+        <div class="admin-brand__copy">
+          <strong>{{ site.site_title }}</strong>
+          <span>CONTROL ROOM / {{ site.archive_code }}</span>
+        </div>
+        <button type="button" class="admin-icon-btn admin-sidebar__close" data-sidebar-close aria-label="Close control room navigation">{{ icon('x') }}</button>
+      </div>
+
+      <div class="admin-identity">
+        <span class="admin-identity__initial" aria-hidden="true">{{ (current_admin.username[:1] if current_admin else 'A')|upper }}</span>
+        <div>
+          <strong>{{ current_admin.username if current_admin else 'ADMINISTRATOR' }}</strong>
+          <span>ARCHIVE ADMINISTRATOR</span>
+        </div>
+        <span class="admin-live-dot" title="Session active" aria-label="Session active"></span>
+      </div>
+
+      <nav class="admin-nav">
+        <span class="admin-nav__group">CONTROL</span>
+        {{ nav_link('admin.dashboard', 'Overview', 'layout-dashboard') }}
+
+        <span class="admin-nav__group">PUBLIC RECORD</span>
+        {{ nav_link('admin.profile', 'Profile', 'user-round') }}
+        {{ nav_link('admin.achievements', 'Achievements', 'trophy', prefix='admin.achievement') }}
+        {{ nav_link('admin.organizations', 'Organizations', 'building-2', prefix='admin.organization') }}
+        {{ nav_link('admin.projects', 'Projects', 'folder-kanban', prefix='admin.project') }}
+        {{ nav_link('admin.collaborators', 'Collaborators', 'users-round', prefix='admin.collaborator') }}
+        {{ nav_link('admin.gallery', 'Gallery', 'images', prefix='admin.gallery') }}
+        {{ nav_link('admin.easter_eggs', 'Easter Eggs', 'sparkles', prefix='admin.easter_egg') }}
+
+        <span class="admin-nav__group">SYSTEM</span>
+        {{ nav_link('admin.appearance', 'Appearance', 'palette') }}
+        {{ nav_link('admin.messages', 'Messages', 'mail', prefix='admin.message', badge=unread_count if unread_count else None) }}
+        {{ nav_link('admin.account', 'Account', 'user-cog', extra='admin.change_password') }}
+      </nav>
+
+      <div class="admin-sidebar__foot">
+        <a href="{{ url_for('main.index') }}" target="_blank" rel="noopener" class="admin-sidebar__link">{{ icon('external-link') }} PUBLIC ARCHIVE</a>
+        <a href="{{ url_for('main.healthz') }}" target="_blank" rel="noopener" class="admin-sidebar__link">{{ icon('activity') }} HEALTH CHECK</a>
+        <form action="{{ url_for('admin.logout') }}" method="post" class="admin-inline-form">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="admin-sidebar__link admin-sidebar__link--logout">{{ icon('log-out') }} LOG OUT</button>
+        </form>
+        <span class="admin-sidebar__version">ARCHIVE CONTROL // v2.1</span>
+      </div>
+    </aside>
+
+    <div class="admin-sidebar-backdrop" data-sidebar-close hidden></div>
+
+    <div class="admin-main">
+      <header class="admin-topbar">
+        <div class="admin-topbar__left">
+          <button type="button" class="admin-icon-btn admin-topbar__menu" data-sidebar-toggle aria-controls="admin-sidebar" aria-expanded="false" aria-label="Open control room navigation">{{ icon('menu') }}</button>
+          <div class="admin-breadcrumb">
+            <span>CONTROL ROOM</span>
+            <i aria-hidden="true">/</i>
+            <strong>{% block page_title %}Overview{% endblock %}</strong>
+          </div>
+        </div>
+        <div class="admin-topbar__right">
+          <span class="admin-system"><i class="admin-live-dot" aria-hidden="true"></i> SYSTEM ONLINE</span>
+          <a href="{{ url_for('main.index') }}" target="_blank" rel="noopener" class="admin-topbar__link">VIEW SITE {{ icon('arrow-up-right') }}</a>
+          <a href="{{ url_for('admin.account') }}" class="admin-topbar__account" aria-label="Account settings" title="Account settings">{{ icon('user-cog') }}</a>
+        </div>
+      </header>
+
+      <main class="admin-content" id="admin-content">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+          <div class="admin-toast-stack" aria-live="polite">
+            {% for category, message in messages %}
+            {% set flash_icon = 'circle-check' if category == 'success' else ('triangle-alert' if category == 'warning' else ('circle-alert' if category == 'error' else 'info')) %}
+            <div class="admin-toast admin-toast--{{ category }}" role="status">
+              <span class="admin-toast__icon">{{ icon(flash_icon) }}</span>
+              <p>{{ message }}</p>
+              <button type="button" data-admin-toast-close aria-label="Dismiss message">{{ icon('x') }}</button>
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+      </main>
+
+      <footer class="admin-footer">
+        <span>ANNAMALAI / PERSONAL DIGITAL UNIVERSE</span>
+        <span>SQLITE // LOCAL ARCHIVE // NO SIMULATED DATA</span>
+        <a href="{{ url_for('main.index') }}">RETURN TO PUBLIC TIMELINE {{ icon('arrow-up-right') }}</a>
+      </footer>
+    </div>
+  </div>
+
+  <div class="admin-modal" id="admin-confirm" hidden>
+    <div class="admin-modal__backdrop" data-confirm-cancel></div>
+    <section class="admin-modal__dialog" role="alertdialog" aria-modal="true" aria-labelledby="admin-confirm-title" aria-describedby="admin-confirm-message" tabindex="-1">
+      <header>
+        <span class="admin-kicker">DESTRUCTIVE ACTION</span>
+        <button type="button" class="admin-icon-btn" data-confirm-cancel aria-label="Cancel">{{ icon('x') }}</button>
+      </header>
+      <span class="admin-modal__sigil" aria-hidden="true">{{ icon('triangle-alert') }}</span>
+      <h2 id="admin-confirm-title">CONFIRM RECORD CHANGE</h2>
+      <p id="admin-confirm-message">This action cannot be undone.</p>
+      <footer>
+        <button type="button" class="admin-btn admin-btn--ghost" data-confirm-cancel>CANCEL</button>
+        <button type="button" class="admin-btn admin-btn--danger" data-confirm-accept>YES, CONTINUE</button>
+      </footer>
+    </section>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/admin.js') }}" defer></script>
+</body>
+</html>

@@ -1,0 +1,231 @@
+{% extends "admin/base.html" %}
+{% from "macros/ui.html" import icon %}
+{% from "admin/_macros.html" import field, textarea, file_field, color_field, checkbox, form_feedback %}
+
+{% block page_title %}Appearance{% endblock %}
+
+{% block content %}
+<header class="admin-page-head">
+  <div>
+    <span class="admin-kicker">PUBLIC SURFACE / CONFIGURATION</span>
+    <h1>APPEARANCE<span aria-hidden="true">.</span></h1>
+    <p>Every heading, label, color and visibility switch on the public archive is controlled from this record.</p>
+  </div>
+  <div class="admin-page-actions">
+    <a class="admin-btn admin-btn--ghost" href="{{ url_for('main.index') }}" target="_blank" rel="noopener">{{ icon('external-link') }}<span>OPEN PUBLIC ARCHIVE</span></a>
+    <button class="admin-btn admin-btn--primary" type="submit" form="appearance-form">{{ icon('save') }}<span>SAVE APPEARANCE</span></button>
+  </div>
+</header>
+
+{{ form_feedback(form) }}
+
+<form id="appearance-form" class="admin-form-layout admin-appearance-layout" method="post" enctype="multipart/form-data" novalidate>
+  {{ form.hidden_tag() }}
+
+  <div class="admin-form-main">
+    <fieldset class="admin-fieldset">
+      <legend><span>01</span> ARCHIVE IDENTITY</legend>
+      <div class="admin-form-grid">
+        {{ field(form.site_title, 'SITE TITLE', placeholder='ANNAMALAI', hint='Used in the browser title, navigation brand and footer.') }}
+        {{ field(form.site_subtitle, 'SITE SUBTITLE', placeholder='PERSONAL DIGITAL UNIVERSE') }}
+        {{ field(form.archive_code, 'ARCHIVE CODE', wide=True, placeholder='ARCHIVE // A-001', hint='The small system label shown beside the brand and in the control room.') }}
+        {{ textarea(form.meta_description, 'META DESCRIPTION', wide=True, rows=3, hint='Search engines and link previews use this description. Keep it factual and concise.') }}
+      </div>
+    </fieldset>
+
+    <fieldset class="admin-fieldset">
+      <legend><span>02</span> HERO SEQUENCE</legend>
+      <div class="admin-form-grid">
+        {{ field(form.hero_kicker, 'HERO KICKER', wide=True, placeholder='PERSONAL ARCHIVE / TIMELINE A-001') }}
+        {{ field(form.hero_line_1, 'HERO LINE 1', placeholder='EVERY TIMELINE HAS A STORY.') }}
+        {{ field(form.hero_line_2, 'HERO LINE 2', placeholder='THIS ONE IS MINE.') }}
+        {{ textarea(form.hero_description, 'HERO DESCRIPTION', wide=True, rows=4, placeholder='A short statement shown beneath the title.') }}
+      </div>
+
+      <div class="admin-media-field">
+        {{ file_field(form.hero_background, 'HERO BACKGROUND IMAGE', hint='Optional. Upload a photograph or texture you own. Without one, the archive renders its generated temporal artifact.', current_url=url_for('main.uploaded_file', filename=settings.hero_background) if settings.hero_background else None) }}
+        {% if settings.hero_background %}
+        <button type="submit" form="background-delete-form" class="admin-btn admin-btn--danger admin-btn--sm">{{ icon('trash-2') }} REMOVE BACKGROUND</button>
+        {% endif %}
+      </div>
+      <p class="admin-note">{{ icon('info') }} The background is layered beneath the hero contrast treatment. Upload only images you have the right to publish.</p>
+    </fieldset>
+
+    <fieldset class="admin-fieldset">
+      <legend><span>03</span> SECTION COPY</legend>
+      <p class="admin-fieldset__intro">These strings appear directly above each public section. Empty optional fields fall back to restrained archive defaults.</p>
+
+      <div class="admin-copy-block">
+        <span class="admin-copy-block__index">02 / ABOUT</span>
+        <div class="admin-form-grid">
+          {{ field(form.about_heading, 'ABOUT HEADING') }}
+          {{ field(form.about_note, 'MARGIN NOTE', hint='The small handwritten note beside the heading.') }}
+        </div>
+      </div>
+
+      <div class="admin-copy-block">
+        <span class="admin-copy-block__index">03 / ACHIEVEMENTS</span>
+        <div class="admin-form-grid">
+          {{ field(form.achievements_heading, 'ACHIEVEMENTS HEADING') }}
+          {{ textarea(form.achievements_intro, 'ACHIEVEMENTS INTRO', rows=3) }}
+        </div>
+      </div>
+
+      <div class="admin-copy-block">
+        <span class="admin-copy-block__index">04 / TEAMS</span>
+        <div class="admin-form-grid">
+          {{ field(form.teams_heading, 'TEAMS HEADING') }}
+          {{ textarea(form.teams_intro, 'TEAMS INTRO', rows=3) }}
+        </div>
+      </div>
+
+      <div class="admin-copy-block">
+        <span class="admin-copy-block__index">05 / PROJECTS</span>
+        <div class="admin-form-grid">
+          {{ field(form.projects_heading, 'PROJECTS HEADING') }}
+          {{ textarea(form.projects_intro, 'PROJECTS INTRO', rows=3) }}
+        </div>
+      </div>
+
+      <div class="admin-copy-block">
+        <span class="admin-copy-block__index">06 / PEOPLE</span>
+        <div class="admin-form-grid">
+          {{ field(form.people_heading, 'PEOPLE HEADING') }}
+          {{ textarea(form.people_intro, 'PEOPLE INTRO', rows=3) }}
+        </div>
+      </div>
+
+      <div class="admin-copy-block">
+        <span class="admin-copy-block__index">07 / GALLERY</span>
+        <div class="admin-form-grid">
+          {{ field(form.gallery_heading, 'GALLERY HEADING') }}
+          {{ textarea(form.gallery_intro, 'GALLERY INTRO', rows=3) }}
+        </div>
+      </div>
+
+      <div class="admin-copy-block">
+        <span class="admin-copy-block__index">CONTROL SYSTEM</span>
+        <div class="admin-form-grid">
+          {{ field(form.control_heading, 'CONTROL HEADING') }}
+          {{ textarea(form.control_intro, 'CONTROL INTRO', rows=3) }}
+        </div>
+      </div>
+
+      <div class="admin-copy-block">
+        <span class="admin-copy-block__index">08 / CONTACT</span>
+        <div class="admin-form-grid">
+          {{ field(form.contact_heading, 'CONTACT HEADING') }}
+          {{ textarea(form.contact_intro, 'CONTACT INTRO', rows=3) }}
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset class="admin-fieldset">
+      <legend><span>04</span> COLOR SYSTEM</legend>
+      <p class="admin-fieldset__intro">Colors are injected as CSS variables across the public archive. Use six-digit hex values.</p>
+      <div class="admin-color-grid">
+        {{ color_field(form.color_bg) }}
+        {{ color_field(form.color_panel) }}
+        {{ color_field(form.color_text) }}
+        {{ color_field(form.color_muted) }}
+        {{ color_field(form.color_red) }}
+        {{ color_field(form.color_copper) }}
+        {{ color_field(form.color_green) }}
+        {{ color_field(form.color_green_light) }}
+        {{ color_field(form.color_highlight) }}
+      </div>
+      <p class="admin-note">{{ icon('info') }} Check contrast after changing the palette. Muted text must remain readable against the background on every screen.</p>
+    </fieldset>
+
+    <fieldset class="admin-fieldset">
+      <legend><span>05</span> FOOTER RECORD</legend>
+      <div class="admin-form-grid">
+        {{ field(form.footer_note, 'FOOTER STATEMENT', wide=True, placeholder='NOT JUST A PORTFOLIO. A TIMELINE OF EVERYTHING I AM BUILDING.') }}
+        {{ field(form.footer_hint, 'FOOTER SECRET HINT', wide=True, hint='A subtle nudge toward the hidden records. Keep it mysterious, not essential.') }}
+      </div>
+    </fieldset>
+  </div>
+
+  <aside class="admin-form-aside">
+    <section class="admin-card admin-card--sticky">
+      <header class="admin-card__head">
+        <div>
+          <span class="admin-kicker">SURFACE PREVIEW</span>
+          <h2>PUBLIC SIGNAL</h2>
+        </div>
+        {{ icon('monitor') }}
+      </header>
+
+      <div class="admin-surface-preview" style="--preview-bg: {{ form.color_bg.data|e }}; --preview-panel: {{ form.color_panel.data|e }}; --preview-text: {{ form.color_text.data|e }}; --preview-muted: {{ form.color_muted.data|e }}; --preview-red: {{ form.color_red.data|e }}; --preview-copper: {{ form.color_copper.data|e }}; --preview-green-deep: {{ form.color_green.data|e }}; --preview-green: {{ form.color_green_light.data|e }}; --preview-highlight: {{ form.color_highlight.data|e }};">
+        <div class="admin-surface-preview__bar">
+          <span data-preview="site_title">{{ form.site_title.data or 'ANNAMALAI' }}</span>
+          <em data-preview="archive_code">{{ form.archive_code.data or 'ARCHIVE // A-001' }}</em>
+        </div>
+        <div class="admin-surface-preview__body">
+          <span class="admin-surface-preview__kicker" data-preview="hero_kicker">{{ form.hero_kicker.data or 'PERSONAL ARCHIVE / TIMELINE A-001' }}</span>
+          <strong data-preview="hero_line_1">{{ form.hero_line_1.data or 'EVERY TIMELINE HAS A STORY.' }}</strong>
+          <strong class="admin-surface-preview__accent" data-preview="hero_line_2">{{ form.hero_line_2.data or 'THIS ONE IS MINE.' }}</strong>
+          <p data-preview="hero_description">{{ form.hero_description.data or 'Developer. Creator. Collaborator.' }}</p>
+        </div>
+        <div class="admin-surface-preview__palette" aria-label="Selected color palette">
+          <i style="background: {{ form.color_bg.data|e }}" title="Background"></i>
+          <i style="background: {{ form.color_panel.data|e }}" title="Panel"></i>
+          <i style="background: {{ form.color_text.data|e }}" title="Primary text"></i>
+          <i style="background: {{ form.color_muted.data|e }}" title="Secondary text"></i>
+          <i style="background: {{ form.color_red.data|e }}" title="Archive red"></i>
+          <i style="background: {{ form.color_copper.data|e }}" title="Copper"></i>
+          <i style="background: {{ form.color_green.data|e }}" title="Archive green"></i>
+          <i style="background: {{ form.color_green_light.data|e }}" title="Signal green"></i>
+          <i style="background: {{ form.color_highlight.data|e }}" title="Highlight"></i>
+        </div>
+      </div>
+      <p class="admin-note">{{ icon('info') }} This preview updates as you type. Save the record to publish it.</p>
+
+      <button class="admin-btn admin-btn--primary admin-btn--block" type="submit">{{ icon('save') }} SAVE APPEARANCE</button>
+    </section>
+
+    <section class="admin-card">
+      <header class="admin-card__head">
+        <div>
+          <span class="admin-kicker">PUBLICATION MAP</span>
+          <h2>VISIBLE SECTIONS</h2>
+        </div>
+        {{ icon('layout-list') }}
+      </header>
+      <div class="admin-switch-grid">
+        {{ checkbox(form.show_about, 'About identity record') }}
+        {{ checkbox(form.show_achievements, 'Achievement timeline') }}
+        {{ checkbox(form.show_teams, 'Teams registry') }}
+        {{ checkbox(form.show_projects, 'Project archive') }}
+        {{ checkbox(form.show_people, 'People constellation') }}
+        {{ checkbox(form.show_gallery, 'Gallery channels') }}
+        {{ checkbox(form.show_control, 'Archive control system') }}
+        {{ checkbox(form.show_contact, 'Contact signal form') }}
+      </div>
+      <p class="admin-note">{{ icon('info') }} Home and the footer are always visible. Hidden sections are removed from navigation and the page.</p>
+    </section>
+
+    <section class="admin-card">
+      <header class="admin-card__head">
+        <div>
+          <span class="admin-kicker">TEXTURE &amp; MOTION</span>
+          <h2>ATMOSPHERE</h2>
+        </div>
+        {{ icon('sliders-horizontal') }}
+      </header>
+      <div class="admin-switch-stack">
+        {{ checkbox(form.animations_enabled, 'Entrance, scroll and hero animations. Reduced-motion preferences are always respected.') }}
+        {{ checkbox(form.grain_enabled, 'Film grain overlay across the public archive.') }}
+        {{ checkbox(form.scanlines_enabled, 'Scanline texture across the public archive.') }}
+      </div>
+      <p class="admin-note">{{ icon('accessibility') }} Motion is disabled automatically for visitors who request reduced motion, regardless of this setting.</p>
+    </section>
+  </aside>
+</form>
+
+{% if settings.hero_background %}
+<form id="background-delete-form" action="{{ url_for('admin.appearance_remove_background') }}" method="post" data-confirm="Remove the hero background image? The saved file will be deleted permanently.">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+</form>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,71 @@
+{% from "macros/ui.html" import icon %}
+<div class="overlay-layer terminal-layer" id="terminal-modal" hidden>
+  <div class="overlay-backdrop" data-overlay-close></div>
+  <section class="terminal-window" role="dialog" aria-modal="true" aria-labelledby="terminal-title" tabindex="-1">
+    <span class="tempad-rivet tempad-rivet--tl" aria-hidden="true"></span>
+    <span class="tempad-rivet tempad-rivet--tr" aria-hidden="true"></span>
+    <span class="tempad-rivet tempad-rivet--bl" aria-hidden="true"></span>
+    <span class="tempad-rivet tempad-rivet--br" aria-hidden="true"></span>
+
+    <header class="terminal-window__head">
+      <div class="tempad-identity">
+        <span class="tempad-mark" aria-hidden="true"><b>ADW</b><i></i></span>
+        <div class="terminal-title">
+          <span class="mono-label">TEMPORAL PAD / UNIT 07</span>
+          <h2 id="terminal-title">TEMPAD TERMINAL</h2>
+        </div>
+      </div>
+
+      <div class="mm-clock" id="miss-minutes" aria-hidden="true">
+        <span class="mm-clock__ticks">
+          {% for tick in range(12) %}<i style="--tick: {{ tick }}"></i>{% endfor %}
+        </span>
+        <span class="mm-clock__hand mm-clock__hand--hour" data-mm-hour></span>
+        <span class="mm-clock__hand mm-clock__hand--minute" data-mm-minute></span>
+        <span class="mm-clock__hand mm-clock__hand--second" data-mm-second></span>
+        <span class="mm-clock__face">
+          <span class="mm-eye mm-eye--left"><i data-mm-pupil></i></span>
+          <span class="mm-eye mm-eye--right"><i data-mm-pupil></i></span>
+          <span class="mm-mouth"></span>
+        </span>
+      </div>
+
+      <div class="tempad-status">
+        <span class="terminal-connection"><i class="status-dot"></i> TEMPAD LINK</span>
+        <span id="tempad-time">--:--:--</span>
+        <span id="tempad-fragments">FRAGMENTS 00 / 00</span>
+      </div>
+
+      <button type="button" class="icon-button" data-overlay-close aria-label="Close terminal">{{ icon('x') }}</button>
+    </header>
+
+    <div class="tempad-dialogue">
+      <span class="tempad-dialogue__name">MISS MINUTES</span>
+      <p id="miss-minutes-line">Well, hello there. The timeline keeps an eye on curious visitors.</p>
+      <span class="tempad-dialogue__signal" aria-hidden="true"><i></i><i></i><i></i></span>
+    </div>
+
+    <div class="terminal-window__screen">
+      <div class="terminal-scan" aria-hidden="true"></div>
+      <div class="terminal-output" id="terminal-output" aria-live="polite"></div>
+      <form class="terminal-form" id="terminal-form" autocomplete="off">
+        <label class="visually-hidden" for="terminal-input">Archive terminal command</label>
+        <span class="terminal-prompt" aria-hidden="true">tempad@archive:~$</span>
+        <input id="terminal-input" name="command" type="text" maxlength="80" spellcheck="false" autocomplete="off" placeholder="type help — or unlock a fragment">
+        <button type="submit" aria-label="Run command">{{ icon('corner-down-left') }}</button>
+      </form>
+    </div>
+
+    <footer class="terminal-window__foot">
+      <div class="terminal-quick" aria-label="Terminal shortcuts">
+        <button type="button" data-terminal-command="help">HELP</button>
+        <button type="button" data-terminal-command="fragments">FRAGMENTS</button>
+        <button type="button" data-terminal-command="scan">SCAN</button>
+        <button type="button" data-terminal-command="hint">HINT</button>
+        <button type="button" data-terminal-command="projects">PROJECTS</button>
+        <button type="button" data-terminal-command="clear">CLEAR</button>
+      </div>
+      <span class="terminal-hint"><kbd>CTRL</kbd><kbd>SHIFT</kbd><kbd>A</kbd> TEMPAD LINK</span>
+    </footer>
+  </section>
+</div>

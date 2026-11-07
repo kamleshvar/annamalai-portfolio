@@ -1,0 +1,102 @@
+{% extends "admin/base.html" %}
+{% from "macros/ui.html" import icon %}
+{% from "admin/_macros.html" import field, textarea, file_field, form_feedback %}
+
+{% block page_title %}{{ 'Edit Achievement' if achievement else 'New Achievement' }}{% endblock %}
+
+{% block content %}
+<header class="admin-page-head">
+  <div>
+    <span class="admin-kicker">{{ 'EDIT RECORD / ' ~ achievement.id if achievement else 'NEW TIMELINE COORDINATE' }}</span>
+    <h1>{{ 'EDIT ACHIEVEMENT' if achievement else 'NEW ACHIEVEMENT' }}<span aria-hidden="true">.</span></h1>
+    <p>{{ 'Update the public timeline record and its attached visual evidence.' if achievement else 'Add a real competition result or milestone to the public timeline.' }}</p>
+  </div>
+  <div class="admin-page-actions">
+    <a class="admin-btn admin-btn--ghost" href="{{ url_for('admin.achievements') }}">{{ icon('arrow-left') }}<span>BACK TO LIST</span></a>
+    <button class="admin-btn admin-btn--primary" type="submit" form="achievement-form">{{ icon('save') }}<span>{{ 'SAVE CHANGES' if achievement else 'CREATE RECORD' }}</span></button>
+  </div>
+</header>
+
+{{ form_feedback(form) }}
+
+<form id="achievement-form" class="admin-form-layout" method="post" enctype="multipart/form-data" novalidate>
+  {{ form.hidden_tag() }}
+
+  <div class="admin-form-main">
+    <fieldset class="admin-fieldset">
+      <legend><span>01</span> COORDINATE</legend>
+      <div class="admin-form-grid">
+        {{ field(form.title, 'COMPETITION / EVENT', wide=True, placeholder='e.g. SRM CODATHON 2026') }}
+        {{ field(form.position, 'POSITION', placeholder='e.g. 1ST PLACE') }}
+        {{ field(form.year, 'YEAR', placeholder='e.g. 2026') }}
+        {{ field(form.sort_order, 'SORT ORDER', hint='Lower numbers appear first on the timeline.', placeholder='0') }}
+      </div>
+    </fieldset>
+
+    <fieldset class="admin-fieldset">
+      <legend><span>02</span> FIELD NOTES</legend>
+      <div class="admin-form-grid">
+        {{ textarea(form.description, 'NOTES', wide=True, rows=8, hint='Shown in the expandable timeline record. Leave blank if no notes exist.', placeholder='What happened, what was built, what the result meant.') }}
+      </div>
+    </fieldset>
+
+    <fieldset class="admin-fieldset">
+      <legend><span>03</span> VISUAL EVIDENCE</legend>
+      <div class="admin-form-grid admin-form-grid--media">
+        <div class="admin-media-field">
+          {{ file_field(form.certificate_image, 'CERTIFICATE PHOTOGRAPH', current_url=url_for('main.uploaded_file', filename=achievement.certificate_image) if achievement and achievement.certificate_image else None) }}
+          {% if achievement and achievement.certificate_image %}
+          <button type="submit" form="certificate-delete-form" class="admin-btn admin-btn--danger admin-btn--sm">{{ icon('trash-2') }} REMOVE CERTIFICATE IMAGE</button>
+          {% endif %}
+        </div>
+        <div class="admin-media-field">
+          {{ file_field(form.event_image, 'EVENT PHOTOGRAPH', current_url=url_for('main.uploaded_file', filename=achievement.event_image) if achievement and achievement.event_image else None) }}
+          {% if achievement and achievement.event_image %}
+          <button type="submit" form="event-image-delete-form" class="admin-btn admin-btn--danger admin-btn--sm">{{ icon('trash-2') }} REMOVE EVENT IMAGE</button>
+          {% endif %}
+        </div>
+      </div>
+      <p class="admin-note">{{ icon('info') }} Only upload photographs you own or have permission to publish. The archive does not generate or substitute images.</p>
+    </fieldset>
+  </div>
+
+  <aside class="admin-form-aside">
+    <section class="admin-card admin-card--sticky">
+      <header class="admin-card__head">
+        <div>
+          <span class="admin-kicker">RECORD STATE</span>
+          <h2>{{ 'LIVE RECORD' if achievement else 'NOT YET CREATED' }}</h2>
+        </div>
+        {{ icon('trophy') }}
+      </header>
+      <dl class="admin-vitals">
+        <div><dt>PUBLIC SECTION</dt><dd>ACHIEVEMENTS / 03</dd></div>
+        <div><dt>DISPLAY MODE</dt><dd>EXPANDABLE TIMELINE</dd></div>
+        <div><dt>VISUALS</dt><dd>{{ ((1 if achievement and achievement.certificate_image else 0) + (1 if achievement and achievement.event_image else 0)) if achievement else 0 }} ATTACHED</dd></div>
+        <div><dt>CONTROL SYSTEM</dt><dd>INCLUDED IN ROTATION</dd></div>
+      </dl>
+      {% if achievement %}
+      <a class="admin-btn admin-btn--ghost admin-btn--block" href="{{ url_for('main.index') }}#achievements" target="_blank" rel="noopener">{{ icon('external-link') }} VIEW PUBLIC TIMELINE</a>
+      {% endif %}
+    </section>
+
+    <section class="admin-card admin-card--help">
+      <span class="admin-card__icon">{{ icon('trophy') }}</span>
+      <h2>ACCURACY FIRST</h2>
+      <p>Use the real event name, placement and year. The initial archive only contains supplied facts; do not invent results or evidence.</p>
+      <p>Sort order can be adjusted later from the achievement list.</p>
+    </section>
+  </aside>
+</form>
+
+{% if achievement and achievement.certificate_image %}
+<form id="certificate-delete-form" action="{{ url_for('admin.achievement_image_delete', achievement_id=achievement.id, field='certificate_image') }}" method="post" data-confirm="Remove the certificate photograph for “{{ achievement.title }}”? The saved image file will be deleted.">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+</form>
+{% endif %}
+{% if achievement and achievement.event_image %}
+<form id="event-image-delete-form" action="{{ url_for('admin.achievement_image_delete', achievement_id=achievement.id, field='event_image') }}" method="post" data-confirm="Remove the event photograph for “{{ achievement.title }}”? The saved image file will be deleted.">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+</form>
+{% endif %}
+{% endblock %}

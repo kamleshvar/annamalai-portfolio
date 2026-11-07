@@ -1,0 +1,101 @@
+{% from "macros/ui.html" import icon %}
+{% from "admin/_macros.html" import field, checkbox %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Control Room Access — {{ site.site_title }}</title>
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#070908">
+  <meta name="color-scheme" content="dark">
+  <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='images/favicon.svg') }}">
+  <link rel="preload" href="{{ url_for('static', filename='fonts/anton-normal-400-latin.woff2') }}" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="{{ url_for('static', filename='fonts/fonts.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+</head>
+<body class="admin-body admin-login-body">
+  <main class="admin-login">
+    <section class="admin-login__visual" aria-label="ANNAMALAI archive control room">
+      <div class="admin-login__grid" aria-hidden="true"></div>
+      <div class="admin-login__artifact" aria-hidden="true">
+        <span class="login-ring login-ring--outer"></span>
+        <span class="login-ring login-ring--middle"></span>
+        <span class="login-ring login-ring--inner"></span>
+        <span class="login-cross login-cross--x"></span>
+        <span class="login-cross login-cross--y"></span>
+        <span class="login-core">A</span>
+        <span class="login-orbit login-orbit--a"><i></i></span>
+        <span class="login-orbit login-orbit--b"><i></i></span>
+      </div>
+      <div class="admin-login__visual-copy">
+        <span class="admin-kicker">PERSONAL DIGITAL UNIVERSE / TIMELINE A-001</span>
+        <p>THE PUBLIC ARCHIVE IS THE DISPLAY.<br>THIS IS THE MACHINE BEHIND IT.</p>
+      </div>
+      <div class="admin-login__visual-meta">
+        <span><i class="admin-live-dot"></i> ACCESS POINT ONLINE</span>
+        <span>FREQUENCY / PRIVATE</span>
+      </div>
+    </section>
+
+    <section class="admin-login__panel">
+      <a href="{{ url_for('main.index') }}" class="admin-login__brand">
+        <span class="admin-brand__sigil" aria-hidden="true"><b>A</b><i></i><i></i></span>
+        <span>
+          <strong>{{ site.site_title }}</strong>
+          <em>CONTROL ROOM / {{ site.archive_code }}</em>
+        </span>
+      </a>
+
+      <div class="admin-login__header">
+        <span class="admin-kicker">RESTRICTED FREQUENCY</span>
+        <h1>CONTROL<br><span>ROOM</span></h1>
+        <p>Authenticate to edit the public record, review incoming signals and manage the archive.</p>
+      </div>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="admin-toast-stack admin-toast-stack--login" aria-live="polite">
+          {% for category, message in messages %}
+          {% set flash_icon = 'circle-check' if category == 'success' else ('triangle-alert' if category == 'warning' else 'circle-alert') %}
+          <div class="admin-toast admin-toast--{{ category }}" role="status">
+            <span class="admin-toast__icon">{{ icon(flash_icon) }}</span>
+            <p>{{ message }}</p>
+            <button type="button" data-admin-toast-close aria-label="Dismiss message">{{ icon('x') }}</button>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+      {% endwith %}
+
+      <form class="admin-login__form" method="post" action="{{ url_for('admin.login', next=request.args.get('next')) }}" novalidate>
+        {{ form.hidden_tag() }}
+
+        {{ field(form.username, 'USERNAME', hint='The administrator account for this archive.', autocomplete='username', placeholder='Identify yourself') }}
+
+        <div class="admin-field{% if form.password.errors %} has-error{% endif %}">
+          <label for="{{ form.password.id }}">PASSWORD <em aria-hidden="true">*</em></label>
+          <div class="admin-password-control">
+            {{ form.password(class="admin-input", autocomplete="current-password", placeholder="Enter archive password") }}
+            <button type="button" class="admin-password-toggle" data-password-toggle data-target="{{ form.password.id }}" aria-label="Show password" aria-pressed="false">{{ icon('eye') }}</button>
+          </div>
+          {% for error in form.password.errors %}<p class="admin-field__error">{{ error }}</p>{% endfor %}
+        </div>
+
+        {{ checkbox(form.remember, 'Keep this control room open on this browser.') }}
+
+        <button type="submit" class="admin-btn admin-btn--primary admin-login__submit">
+          <span>ENTER THE ARCHIVE</span>{{ icon('arrow-up-right') }}
+        </button>
+      </form>
+
+      <div class="admin-login__foot">
+        <span>{{ icon('shield-check') }} CSRF-PROTECTED / THROTTLED ACCESS</span>
+        <a href="{{ url_for('main.index') }}">RETURN TO PUBLIC ARCHIVE {{ icon('arrow-up-right') }}</a>
+      </div>
+      <p class="admin-login__recovery">Lost access? Password recovery requires server-console access. See the README for the recovery command.</p>
+    </section>
+  </main>
+  <script src="{{ url_for('static', filename='js/admin.js') }}" defer></script>
+</body>
+</html>

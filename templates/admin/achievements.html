@@ -1,0 +1,65 @@
+{% extends "admin/base.html" %}
+{% from "macros/ui.html" import icon %}
+{% from "admin/_macros.html" import confirm_form, move_form, move_down_form, empty_state %}
+
+{% block page_title %}Achievements{% endblock %}
+
+{% block content %}
+<header class="admin-page-head">
+  <div>
+    <span class="admin-kicker">TIMELINE COORDINATES / {{ "%02d"|format(achievements|length) }}</span>
+    <h1>ACHIEVEMENTS<span aria-hidden="true">.</span></h1>
+    <p>Competition results and milestones, ordered exactly as they appear on the public timeline.</p>
+  </div>
+  <div class="admin-page-actions">
+    <a class="admin-btn admin-btn--ghost" href="{{ url_for('main.index') }}#achievements" target="_blank" rel="noopener">{{ icon('external-link') }}<span>VIEW TIMELINE</span></a>
+    <a class="admin-btn admin-btn--primary" href="{{ url_for('admin.achievement_new') }}">{{ icon('plus') }}<span>NEW ACHIEVEMENT</span></a>
+  </div>
+</header>
+
+<div class="admin-index-bar">
+  <span><i class="admin-live-dot"></i> {{ achievements|length }} PUBLIC RECORD{{ '' if achievements|length == 1 else 'S' }}</span>
+  <span>DISPLAY ORDER / ASCENDING</span>
+  <span>VISUAL RECORDS / {{ achievements|selectattr('certificate_image')|list|length + achievements|selectattr('event_image')|list|length }}</span>
+</div>
+
+{% if achievements %}
+<div class="admin-record-list">
+  {% for achievement in achievements %}
+  <article class="admin-record">
+    <span class="admin-record__order">{{ "%02d"|format(loop.index) }}</span>
+
+    <div class="admin-record__media">
+      {% if achievement.certificate_image or achievement.event_image %}
+      <img src="{{ url_for('main.uploaded_file', filename=achievement.certificate_image or achievement.event_image) }}" alt="{{ achievement.title }} visual record" loading="lazy" decoding="async">
+      {% else %}
+      <span class="admin-record__placeholder">{{ icon('trophy') }}<em>NO IMAGE</em></span>
+      {% endif %}
+    </div>
+
+    <div class="admin-record__body">
+      <span class="admin-kicker">{{ achievement.year or 'YEAR / UNRECORDED' }} / COORDINATE {{ "%02d"|format(loop.index) }}</span>
+      <h2>{{ achievement.title }}</h2>
+      <div class="admin-record__meta">
+        <span class="admin-pill{% if achievement.position %} admin-pill--signal{% endif %}">{{ achievement.position or 'POSITION UNRECORDED' }}</span>
+        <span>SORT / {{ achievement.sort_order }}</span>
+        <span>{{ (1 if achievement.certificate_image else 0) + (1 if achievement.event_image else 0) }} IMAGE{{ '' if ((1 if achievement.certificate_image else 0) + (1 if achievement.event_image else 0)) == 1 else 'S' }}</span>
+      </div>
+      {% if achievement.description %}<p>{{ achievement.description|truncate(180, True, '…') }}</p>{% else %}<p class="admin-muted">No field notes recorded.</p>{% endif %}
+    </div>
+
+    <div class="admin-record__actions">
+      <div class="admin-move-group" aria-label="Reorder {{ achievement.title }}">
+        {{ move_form(url_for('admin.achievement_move', achievement_id=achievement.id, direction='up'), 'Move ' ~ achievement.title ~ ' up', loop.first) }}
+        {{ move_down_form(url_for('admin.achievement_move', achievement_id=achievement.id, direction='down'), 'Move ' ~ achievement.title ~ ' down', loop.last) }}
+      </div>
+      <a class="admin-btn admin-btn--ghost admin-btn--sm" href="{{ url_for('admin.achievement_edit', achievement_id=achievement.id) }}">{{ icon('pencil') }} EDIT</a>
+      {{ confirm_form(url_for('admin.achievement_delete', achievement_id=achievement.id), 'Delete the achievement record “' ~ achievement.title ~ '” and both attached images? This cannot be undone.', 'DELETE') }}
+    </div>
+  </article>
+  {% endfor %}
+</div>
+{% else %}
+{{ empty_state('NO ACHIEVEMENTS RECORDED.', 'The public timeline will show an empty archive until the first record is created.', url_for('admin.achievement_new'), 'CREATE FIRST ACHIEVEMENT', 'trophy') }}
+{% endif %}
+{% endblock %}

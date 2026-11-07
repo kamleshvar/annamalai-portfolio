@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% from "macros/ui.html" import egg_nodes %}
+
+{% block content %}
+  {% include "sections/hero.html" %}
+
+  {% if site.show_about %}
+    {% include "sections/about.html" %}
+  {% endif %}
+
+  {% if site.show_achievements %}
+    {% include "sections/achievements.html" %}
+  {% endif %}
+
+  {% if site.show_teams %}
+    {% include "sections/teams.html" %}
+  {% endif %}
+
+  {% if site.show_projects %}
+    {% include "sections/projects.html" %}
+  {% endif %}
+
+  {% if site.show_people %}
+    {% include "sections/people.html" %}
+  {% endif %}
+
+  {% if site.show_gallery %}
+    {% include "sections/gallery.html" %}
+  {% endif %}
+
+  {% if site.show_control %}
+    {% include "sections/control.html" %}
+  {% endif %}
+
+  {% if site.show_contact %}
+    {% include "sections/contact.html" %}
+  {% endif %}
+
+  <div class="global-egg-zone" aria-label="Global hidden records">
+    {{ egg_nodes(enabled_eggs|selectattr('section', 'equalto', 'global')|rejectattr('interaction_type', 'equalto', 'terminal')|list) }}
+  </div>
+
+  {% include "sections/footer.html" %}
+{% endblock %}

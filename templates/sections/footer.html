@@ -1,0 +1,83 @@
+{% from "macros/ui.html" import icon, egg_nodes %}
+<footer class="archive-footer" id="archive-footer" data-archive-section="footer">
+  <div class="footer-signal" aria-hidden="true">
+    <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+  </div>
+  <div class="container">
+    <div class="footer-topline">
+      <span class="mono-label">END OF PUBLIC ARCHIVE / {{ site.archive_code }}</span>
+      <div class="footer-topline__right">
+        <span class="footer-clock" id="footer-clock">--:--:--</span>
+        <a href="#home" class="footer-top-link">RETURN TO ORIGIN {{ icon('arrow-up') }}</a>
+      </div>
+    </div>
+
+    <div class="footer-wordmark" aria-label="{{ site.site_title }}">
+      <span>{{ site.site_title }}</span>
+      <span aria-hidden="true">{{ site.site_title }}</span>
+    </div>
+
+    <p class="footer-statement">{{ site.footer_note }}</p>
+
+    <div class="footer-grid">
+      <div class="footer-index">
+        <span class="mono-label">ARCHIVE INDEX</span>
+        <nav aria-label="Footer navigation">
+          <a href="#home"><span>01</span>HOME</a>
+          {% if site.show_about %}<a href="#about"><span>02</span>ABOUT</a>{% endif %}
+          {% if site.show_achievements %}<a href="#achievements"><span>03</span>ACHIEVEMENTS</a>{% endif %}
+          {% if site.show_teams %}<a href="#teams"><span>04</span>TEAMS</a>{% endif %}
+          {% if site.show_projects %}<a href="#projects"><span>05</span>PROJECTS</a>{% endif %}
+          {% if site.show_people %}<a href="#people"><span>06</span>PEOPLE</a>{% endif %}
+          {% if site.show_gallery %}<a href="#gallery"><span>07</span>GALLERY</a>{% endif %}
+          {% if site.show_contact %}<a href="#contact"><span>08</span>CONTACT</a>{% endif %}
+        </nav>
+      </div>
+
+      <div class="footer-system">
+        <span class="mono-label">SYSTEM REPORT</span>
+        <div><span>ARCHIVE STATUS</span><strong><i class="status-dot"></i> ONLINE</strong></div>
+        <div><span>TIMELINE</span><strong>ACTIVE</strong></div>
+        <div><span>ACCESS LEVEL</span><strong>PUBLIC / 01</strong></div>
+        <div><span>COORDINATE</span><strong>{{ current_year }} / A-001</strong></div>
+      </div>
+
+      <div class="footer-secret">
+        <span class="mono-label">ANOMALOUS FREQUENCIES</span>
+        <p>{{ site.footer_hint or 'SOME RECORDS ARE HIDDEN. THE ARCHIVE REWARDS ATTENTION.' }}</p>
+        <div class="footer-secret__actions">
+          {{ egg_nodes(eggs_by_section.get('footer', [])) }}
+        </div>
+        <button type="button" class="footer-terminal-link" data-terminal-open>
+          {{ icon('terminal') }} OPEN SECRET TERMINAL
+        </button>
+        <span class="keyboard-hint keyboard-hint--footer"><kbd>CTRL</kbd><kbd>SHIFT</kbd><kbd>A</kbd> BACKDOOR</span>
+      </div>
+
+      <div class="footer-identity">
+        <span class="mono-label">PERSONAL IDENTIFICATION</span>
+        <strong>{{ profile.name }}</strong>
+        <span>{{ profile.role_line }}</span>
+        {% if profile.social_links %}
+        <div class="footer-socials">
+          {% for link in profile.social_links %}
+          <a href="{{ link.url }}" target="_blank" rel="noopener noreferrer" aria-label="{{ link.label }}">{{ icon(link.icon) }}</a>
+          {% endfor %}
+        </div>
+        {% endif %}
+        <button type="button" class="mode-link" data-mode-toggle>GREEN FOCUS MODE {{ icon('aperture') }}</button>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <span>© {{ current_year }} {{ site.site_title }}. ALL TIMELINES RESERVED.</span>
+      <span class="footer-bottom__center">NOT JUST A PORTFOLIO. A TIMELINE OF EVERYTHING I AM BUILDING.</span>
+      <span class="footer-bottom__links">
+        <a href="{{ url_for('admin.login') }}">CONTROL ROOM</a>
+        <span>/</span>
+        <a href="{{ url_for('main.healthz') }}" target="_blank" rel="noopener">SYSTEM CHECK</a>
+      </span>
+    </div>
+  </div>
+</footer>

@@ -1,0 +1,87 @@
+{% extends "admin/base.html" %}
+{% from "macros/ui.html" import icon %}
+{% from "admin/_macros.html" import field, textarea, file_field, form_feedback %}
+
+{% block page_title %}{{ 'Edit Organization' if organization else 'New Organization' }}{% endblock %}
+
+{% block content %}
+<header class="admin-page-head">
+  <div>
+    <span class="admin-kicker">{{ 'EDIT RECORD / ' ~ organization.id if organization else 'NEW AFFILIATION RECORD' }}</span>
+    <h1>{{ 'EDIT ORGANIZATION' if organization else 'NEW ORGANIZATION' }}<span aria-hidden="true">.</span></h1>
+    <p>{{ 'Update the public Teams record for this organization.' if organization else 'Register a team, company or community connected to the timeline.' }}</p>
+  </div>
+  <div class="admin-page-actions">
+    <a class="admin-btn admin-btn--ghost" href="{{ url_for('admin.organizations') }}">{{ icon('arrow-left') }}<span>BACK TO LIST</span></a>
+    <button class="admin-btn admin-btn--primary" type="submit" form="organization-form">{{ icon('save') }}<span>{{ 'SAVE CHANGES' if organization else 'CREATE RECORD' }}</span></button>
+  </div>
+</header>
+
+{{ form_feedback(form) }}
+
+<form id="organization-form" class="admin-form-layout" method="post" enctype="multipart/form-data" novalidate>
+  {{ form.hidden_tag() }}
+
+  <div class="admin-form-main">
+    <fieldset class="admin-fieldset">
+      <legend><span>01</span> ORGANIZATION</legend>
+      <div class="admin-form-grid">
+        {{ field(form.name, 'ORGANIZATION NAME', wide=True, placeholder='e.g. TECHORIGIN') }}
+        {{ field(form.role, 'YOUR ROLE', placeholder='e.g. CO-FOUNDER') }}
+        {{ field(form.website, 'WEBSITE', placeholder='https://example.com') }}
+        {{ field(form.sort_order, 'SORT ORDER', hint='Lower numbers appear first in Teams.', placeholder='0') }}
+      </div>
+    </fieldset>
+
+    <fieldset class="admin-fieldset">
+      <legend><span>02</span> PUBLIC DESCRIPTION</legend>
+      <div class="admin-form-grid">
+        {{ textarea(form.description, 'DESCRIPTION', wide=True, rows=7, hint='Describe the organization and your actual involvement. Leave blank if no description has been supplied.', placeholder='What this organization does and how you are connected to it.') }}
+      </div>
+    </fieldset>
+
+    <fieldset class="admin-fieldset">
+      <legend><span>03</span> LOGO</legend>
+      {{ file_field(form.logo, 'ORGANIZATION LOGO', current_url=url_for('main.uploaded_file', filename=organization.logo) if organization and organization.logo else None) }}
+      {% if organization and organization.logo %}
+      <button type="submit" form="logo-delete-form" class="admin-btn admin-btn--danger admin-btn--sm">{{ icon('trash-2') }} REMOVE LOGO</button>
+      {% endif %}
+      <p class="admin-note">{{ icon('info') }} If no logo is uploaded, the public archive renders a generated monogram from the organization name.</p>
+    </fieldset>
+  </div>
+
+  <aside class="admin-form-aside">
+    <section class="admin-card admin-card--sticky">
+      <header class="admin-card__head">
+        <div>
+          <span class="admin-kicker">RECORD STATE</span>
+          <h2>{{ 'LIVE RECORD' if organization else 'NOT YET CREATED' }}</h2>
+        </div>
+        {{ icon('building-2') }}
+      </header>
+      <dl class="admin-vitals">
+        <div><dt>PUBLIC SECTION</dt><dd>TEAMS / 04</dd></div>
+        <div><dt>LOGO</dt><dd>{{ 'ATTACHED' if organization and organization.logo else 'MONOGRAM FALLBACK' }}</dd></div>
+        <div><dt>EXTERNAL LINK</dt><dd>{{ 'CONFIGURED' if organization and organization.website else 'NOT SET' }}</dd></div>
+        <div><dt>SORT ORDER</dt><dd>{{ organization.sort_order if organization else 'NEW' }}</dd></div>
+      </dl>
+      {% if organization %}
+      <a class="admin-btn admin-btn--ghost admin-btn--block" href="{{ url_for('main.index') }}#teams" target="_blank" rel="noopener">{{ icon('external-link') }} VIEW PUBLIC TEAMS</a>
+      {% endif %}
+    </section>
+
+    <section class="admin-card admin-card--help">
+      <span class="admin-card__icon">{{ icon('building-2') }}</span>
+      <h2>REAL AFFILIATIONS ONLY</h2>
+      <p>Record organizations you are actually part of. The seeded registry contains only the supplied names and roles.</p>
+      <p>Leave the website blank if no official URL exists.</p>
+    </section>
+  </aside>
+</form>
+
+{% if organization and organization.logo %}
+<form id="logo-delete-form" action="{{ url_for('admin.organization_logo_delete', organization_id=organization.id) }}" method="post" data-confirm="Remove the logo for “{{ organization.name }}”? The saved image file will be deleted.">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+</form>
+{% endif %}
+{% endblock %}

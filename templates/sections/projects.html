@@ -1,0 +1,194 @@
+{% from "macros/ui.html" import icon, section_meta, expressive_title, egg_nodes, empty_record %}
+<section class="section section--projects" id="projects" data-archive-section="projects">
+  <div class="container">
+    {{ section_meta('05', 'PROJECT ARCHIVE', 'LIVE OBJECTS / ' ~ projects|length) }}
+
+    <div class="section-heading-row">
+      <div data-reveal>
+        <h2 class="section-title section-title--wide">{{ expressive_title(site.projects_heading) }}</h2>
+        <p class="section-intro">{{ site.projects_intro }}</p>
+      </div>
+      <div class="section-aside archive-key" data-reveal>
+        <span class="mono-label">ARCHIVE KEY</span>
+        <div><i class="key-line key-line--featured"></i> FEATURED RECORD</div>
+        <div><i class="key-line"></i> SUPPORTING RECORD</div>
+        <div><i class="key-dot"></i> LINK VERIFIED</div>
+      </div>
+    </div>
+
+    {% if featured_project %}
+    <article class="featured-project" id="project-{{ featured_project.id }}" data-reveal>
+      <div class="featured-project__visual">
+        {% if featured_project.cover_image %}
+        <img src="{{ url_for('main.uploaded_file', filename=featured_project.cover_image) }}" alt="{{ featured_project.title }} cover image" loading="lazy" decoding="async">
+        <span class="media-corner media-corner--tl"></span>
+        <span class="media-corner media-corner--tr"></span>
+        <span class="media-corner media-corner--bl"></span>
+        <span class="media-corner media-corner--br"></span>
+        {% else %}
+        <div class="project-plate project-plate--featured" aria-label="Abstract placeholder for {{ featured_project.title }}">
+          <span class="project-plate__grid" aria-hidden="true"></span>
+          <span class="project-plate__ring" aria-hidden="true"></span>
+          <span class="project-plate__index mono-label">OBJECT / 001</span>
+          <span class="project-plate__monogram" aria-hidden="true">{{ featured_project.title[:1] }}</span>
+          <span class="project-plate__title">{{ featured_project.title }}</span>
+          <span class="project-plate__domain mono-label">{{ (featured_project.external_url or 'NO EXTERNAL COORDINATE')|replace('https://', '')|replace('http://', '')|truncate(40, True, '…') }}</span>
+          <span class="project-plate__pending mono-label">VISUAL RECORD / AWAITING UPLOAD</span>
+        </div>
+        {% endif %}
+        <div class="featured-project__visual-meta">
+          <span class="mono-label">FEATURED OBJECT</span>
+          <span class="live-indicator"><i class="status-dot"></i> {{ 'LIVE' if featured_project.external_url else 'RECORDED' }}</span>
+        </div>
+      </div>
+
+      <div class="featured-project__content">
+        <div class="featured-project__top">
+          <span class="mono-label">PROJECT / 001 — PRIMARY RECORD</span>
+          <span class="featured-star" title="Featured project">{{ icon('sparkles') }}</span>
+        </div>
+        <h3>{{ featured_project.title }}</h3>
+        {% if featured_project.tagline %}
+        <p class="featured-project__tagline">{{ featured_project.tagline }}</p>
+        {% endif %}
+        {% if featured_project.description %}
+        <p class="featured-project__description">{{ featured_project.description }}</p>
+        {% else %}
+        <p class="record-pending">PROJECT DESCRIPTION // AWAITING ENTRY</p>
+        {% endif %}
+
+        <div class="tech-tags" aria-label="Technology stack">
+          {% for tech in featured_project.tech_list %}
+          <span>{{ tech }}</span>
+          {% else %}
+          <span class="tech-tags__pending">TECHNICAL CLASSIFICATION / PENDING</span>
+          {% endfor %}
+        </div>
+
+        <div class="project-actions">
+          {% if featured_project.external_url %}
+          <a class="btn btn--primary" href="{{ featured_project.external_url }}" target="_blank" rel="noopener noreferrer">
+            <span>ENTER LIVE PROJECT</span>{{ icon('arrow-up-right') }}
+          </a>
+          {% endif %}
+          {% if featured_project.github_url %}
+          <a class="btn btn--ghost" href="{{ featured_project.github_url }}" target="_blank" rel="noopener noreferrer">
+            <span>SOURCE RECORD</span>{{ icon('github') }}
+          </a>
+          {% endif %}
+        </div>
+
+        <details class="project-record">
+          <summary>
+            <span>OPEN BUILD RECORD</span>
+            {{ icon('plus') }}
+          </summary>
+          <div class="project-record__body">
+            {% if featured_project.long_description %}
+              {% for paragraph in featured_project.long_description|paragraphs %}
+              <p>{{ paragraph }}</p>
+              {% endfor %}
+            {% else %}
+            <p class="record-pending">LONG-FORM RECORD // NOT YET CATALOGUED</p>
+            {% endif %}
+
+            <div class="project-screens">
+              <span class="mono-label">SCREENSHOT REGISTER</span>
+              {% if featured_project.images %}
+              <div class="project-screens__grid">
+                {% for image in featured_project.images %}
+                <a href="{{ url_for('main.uploaded_file', filename=image.filename) }}" target="_blank" rel="noopener noreferrer" class="project-screen">
+                  <img src="{{ url_for('main.uploaded_file', filename=image.filename) }}" alt="{{ image.caption or featured_project.title ~ ' screenshot ' ~ loop.index }}" loading="lazy" decoding="async">
+                  <span>{{ image.caption or 'FRAME ' ~ "%02d"|format(loop.index) }} {{ icon('maximize-2') }}</span>
+                </a>
+                {% endfor %}
+              </div>
+              {% else %}
+              {{ empty_record('SCREENSHOT REGISTER', 'AWAITING UPLOAD') }}
+              {% endif %}
+            </div>
+          </div>
+        </details>
+      </div>
+    </article>
+    {% else %}
+    <div class="archive-empty" data-reveal>
+      <span class="archive-empty__code">05 / EMPTY</span>
+      <h3>NO PROJECTS HAVE BEEN CATALOGUED.</h3>
+      <p>The project archive is ready. New records appear here as soon as they are created.</p>
+    </div>
+    {% endif %}
+
+    {% if other_projects %}
+    <div class="project-index">
+      <div class="project-index__head" data-reveal>
+        <span class="mono-label">SUPPORTING RECORDS</span>
+        <span class="section-rule" aria-hidden="true"></span>
+        <span class="mono-label">{{ "%02d"|format(other_projects|length) }} ENTRIES</span>
+      </div>
+      <div class="project-grid">
+        {% for project in other_projects %}
+        <article class="project-card" id="project-{{ project.id }}" data-reveal>
+          <div class="project-card__media">
+            {% if project.cover_image %}
+            <img src="{{ url_for('main.uploaded_file', filename=project.cover_image) }}" alt="{{ project.title }} cover image" loading="lazy" decoding="async">
+            {% else %}
+            <div class="project-plate" aria-label="Abstract placeholder for {{ project.title }}">
+              <span class="project-plate__grid" aria-hidden="true"></span>
+              <span class="project-plate__monogram" aria-hidden="true">{{ project.title[:1] }}</span>
+              <span class="project-plate__title">{{ project.title }}</span>
+              <span class="project-plate__pending mono-label">VISUAL RECORD / PENDING</span>
+            </div>
+            {% endif %}
+            <span class="project-card__number mono-label">{{ "%02d"|format(loop.index + 1) }}</span>
+            {% if project.featured %}<span class="project-card__featured">{{ icon('sparkles') }} FEATURED</span>{% endif %}
+          </div>
+          <div class="project-card__body">
+            <span class="mono-label">OBJECT / {{ "%02d"|format(loop.index + 1) }}</span>
+            <h3>{{ project.title }}</h3>
+            {% if project.tagline %}<p class="project-card__tagline">{{ project.tagline }}</p>{% endif %}
+            <div class="tech-tags tech-tags--small">
+              {% for tech in project.tech_list[:5] %}
+              <span>{{ tech }}</span>
+              {% else %}
+              <span class="tech-tags__pending">CLASSIFICATION / PENDING</span>
+              {% endfor %}
+            </div>
+            <div class="project-card__actions">
+              {% if project.external_url %}
+              <a class="link-arrow" href="{{ project.external_url }}" target="_blank" rel="noopener noreferrer">OPEN PROJECT {{ icon('arrow-up-right') }}</a>
+              {% endif %}
+              {% if project.github_url %}
+              <a class="icon-link" href="{{ project.github_url }}" target="_blank" rel="noopener noreferrer" aria-label="{{ project.title }} source code">{{ icon('github') }}</a>
+              {% endif %}
+            </div>
+            {% if project.long_description or project.images %}
+            <details class="project-record project-record--compact">
+              <summary><span>RECORD DETAILS</span>{{ icon('plus') }}</summary>
+              <div class="project-record__body">
+                {% for paragraph in project.long_description|paragraphs %}<p>{{ paragraph }}</p>{% endfor %}
+                {% if project.images %}
+                <div class="project-screens__grid">
+                  {% for image in project.images %}
+                  <a href="{{ url_for('main.uploaded_file', filename=image.filename) }}" target="_blank" rel="noopener noreferrer" class="project-screen">
+                    <img src="{{ url_for('main.uploaded_file', filename=image.filename) }}" alt="{{ image.caption or project.title ~ ' screenshot ' ~ loop.index }}" loading="lazy" decoding="async">
+                    <span>{{ image.caption or 'FRAME ' ~ "%02d"|format(loop.index) }} {{ icon('maximize-2') }}</span>
+                  </a>
+                  {% endfor %}
+                </div>
+                {% endif %}
+              </div>
+            </details>
+            {% endif %}
+          </div>
+        </article>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="section-float-zone">
+      {{ egg_nodes(eggs_by_section.get('projects', [])) }}
+    </div>
+  </div>
+</section>

@@ -1,0 +1,112 @@
+{% extends "admin/base.html" %}
+{% from "macros/ui.html" import icon %}
+{% from "admin/_macros.html" import field, textarea, file_field, form_feedback, confirm_form %}
+
+{% block page_title %}Profile{% endblock %}
+
+{% block content %}
+<header class="admin-page-head">
+  <div>
+    <span class="admin-kicker">PUBLIC RECORD / IDENTITY</span>
+    <h1>PROFILE<span aria-hidden="true">.</span></h1>
+    <p>The identity record that anchors the public archive. Everything here appears on the site after saving.</p>
+  </div>
+  <div class="admin-page-actions">
+    <a class="admin-btn admin-btn--ghost" href="{{ url_for('main.index') }}#about" target="_blank" rel="noopener">{{ icon('external-link') }}<span>VIEW ABOUT SECTION</span></a>
+    <button class="admin-btn admin-btn--primary" type="submit" form="profile-form">{{ icon('save') }}<span>SAVE PROFILE</span></button>
+  </div>
+</header>
+
+{{ form_feedback(form) }}
+
+<form id="profile-form" class="admin-form-layout" method="post" enctype="multipart/form-data" novalidate>
+  {{ form.hidden_tag() }}
+
+  <div class="admin-form-main">
+    <fieldset class="admin-fieldset">
+      <legend><span>01</span> IDENTITY</legend>
+      <div class="admin-form-grid">
+        {{ field(form.name, 'DISPLAY NAME', wide=True, placeholder='ANNAMALAI') }}
+        {{ field(form.role_line, 'ROLE LINE', wide=True, placeholder='DEVELOPER. CREATOR. COLLABORATOR.') }}
+        {{ field(form.tagline, 'TAGLINE', wide=True, placeholder='Always building something beyond the ordinary.') }}
+        {{ field(form.focus_areas, 'FOCUS AREAS', wide=True, hint='Separate areas with a slash, for example: DEVELOPMENT / TEAMS / COLLABORATION.', placeholder='DEVELOPMENT / TEAMS / COLLABORATION') }}
+        {{ field(form.location, 'LOCATION', hint='Leave blank to show NOT YET ARCHIVED.', placeholder='City, country') }}
+      </div>
+    </fieldset>
+
+    <fieldset class="admin-fieldset">
+      <legend><span>02</span> PUBLIC NARRATIVE</legend>
+      <div class="admin-form-grid">
+        {{ textarea(form.intro, 'SHORT INTRODUCTION', wide=True, rows=4, hint='Shown as the opening paragraph of the About section.', placeholder='A concise introduction to you and the archive.') }}
+        {{ textarea(form.biography, 'BIOGRAPHY', wide=True, rows=10, hint='Separate paragraphs with a blank line. This is placeholder archive copy until you replace it.', placeholder='Write the public biography here.') }}
+        {{ textarea(form.philosophy, 'PHILOSOPHY / QUOTE', wide=True, rows=3, placeholder='A line worth keeping.') }}
+      </div>
+    </fieldset>
+
+    <fieldset class="admin-fieldset">
+      <legend><span>03</span> CONTACT COORDINATES</legend>
+      <div class="admin-form-grid">
+        {{ field(form.email, 'PUBLIC EMAIL', autocomplete='email', placeholder='you@example.com') }}
+        {{ field(form.phone, 'PHONE', autocomplete='tel', placeholder='+91 ...') }}
+        {{ field(form.github_url, 'GITHUB URL', placeholder='https://github.com/...') }}
+        {{ field(form.linkedin_url, 'LINKEDIN URL', placeholder='https://linkedin.com/in/...') }}
+        {{ field(form.instagram_url, 'INSTAGRAM URL', placeholder='https://instagram.com/...') }}
+        {{ field(form.x_url, 'X URL', placeholder='https://x.com/...') }}
+      </div>
+      <p class="admin-note">{{ icon('info') }} Empty social fields are omitted from the public archive rather than displayed as broken links.</p>
+    </fieldset>
+  </div>
+
+  <aside class="admin-form-aside">
+    <section class="admin-card admin-card--sticky">
+      <header class="admin-card__head">
+        <div>
+          <span class="admin-kicker">VISUAL RECORD</span>
+          <h2>PORTRAIT</h2>
+        </div>
+        {{ icon('user-round') }}
+      </header>
+
+      {% if profile.avatar %}
+      <div class="admin-portrait">
+        <img src="{{ url_for('main.uploaded_file', filename=profile.avatar) }}" alt="Current portrait of {{ profile.name }}" loading="lazy" decoding="async">
+        <span class="admin-portrait__label">CURRENT FILE / {{ profile.avatar.split('/')[-1] }}</span>
+      </div>
+      <div class="admin-media-actions">
+        <button type="submit" form="avatar-delete-form" class="admin-btn admin-btn--danger admin-btn--sm">{{ icon('trash-2') }} REMOVE PORTRAIT</button>
+      </div>
+      <form id="avatar-delete-form" action="{{ url_for('admin.profile_avatar_delete') }}" method="post" data-confirm="Remove the portrait from the public About section? The image file will be deleted permanently.">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      </form>
+      {% else %}
+      <div class="admin-portrait admin-portrait--empty">
+        <span class="admin-portrait__monogram">{{ profile.initials }}</span>
+        <span class="admin-portrait__label">NO PORTRAIT RECORDED</span>
+      </div>
+      {% endif %}
+
+      {{ file_field(form.avatar, 'UPLOAD NEW PORTRAIT', hint='Recommended: a vertical portrait. The archive resizes files above 2600px.', current_url=url_for('main.uploaded_file', filename=profile.avatar) if profile.avatar else None) }}
+
+      <div class="admin-readout">
+        <span>PUBLIC STATUS</span>
+        <strong class="admin-status admin-status--online"><i class="admin-live-dot"></i> LIVE</strong>
+      </div>
+      <div class="admin-readout">
+        <span>FOCUS AREAS</span>
+        <strong>{{ profile.focus_areas or '—' }}</strong>
+      </div>
+      <div class="admin-readout">
+        <span>SOCIAL LINKS</span>
+        <strong>{{ profile.social_links|length }} CONFIGURED</strong>
+      </div>
+    </section>
+
+    <section class="admin-card admin-card--help">
+      <span class="admin-card__icon">{{ icon('scan-face') }}</span>
+      <h2>IDENTITY GUIDANCE</h2>
+      <p>Use your own portrait and your real biography. The archive deliberately ships without invented photographs or personal history.</p>
+      <p>All changes are committed to the database immediately after saving.</p>
+    </section>
+  </aside>
+</form>
+{% endblock %}

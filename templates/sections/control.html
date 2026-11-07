@@ -1,0 +1,311 @@
+{% from "macros/ui.html" import icon, section_meta, expressive_title, egg_nodes %}
+{% set first_achievement = achievements[0] if achievements else None %}
+<section class="section section--control" id="control" data-archive-section="control">
+  <div class="container">
+    {{ section_meta('SYS', 'SYSTEM INTERFACE', 'CONSOLE / SEALED', 'control-section-status') }}
+
+    <div class="section-heading-row">
+      <div data-reveal>
+        <h2 class="section-title">{{ expressive_title(site.control_heading) }}</h2>
+        <p class="section-intro">{{ site.control_intro }}</p>
+      </div>
+      <div class="control-key" data-reveal>
+        <span><i class="status-dot"></i> TEMPAD CLEARANCE REQUIRED</span>
+        <span>NO PUBLIC SHORTCUTS</span>
+      </div>
+    </div>
+
+    <div class="control-fragment-config" data-access-config hidden>
+      {% for fragment in access_fragments %}
+      <span data-access-fragment
+            data-slot="{{ fragment.access_slot }}"
+            data-code="{{ fragment.access_code }}"
+            data-section="{{ fragment.section }}"
+            data-title="{{ fragment.title }}"></span>
+      {% endfor %}
+    </div>
+
+    <div class="control-gate control-shell" data-control-gate data-reveal>
+      <div class="control-topbar">
+        <div class="control-topbar__brand">
+          <span class="control-glyph" aria-hidden="true">A</span>
+          <div>
+            <strong>ARCHIVE CONTROL SYSTEM</strong>
+            <span class="mono-label">TVA // TEMPORAL FIREWALL</span>
+          </div>
+        </div>
+        <div class="control-topbar__meta">
+          <span class="control-gate__state"><i class="status-dot"></i> SEALED</span>
+          <span>ACCESS / TEMPAD ONLY</span>
+          <span id="gate-clock">--:--:--</span>
+        </div>
+      </div>
+
+      <div class="control-gate__body">
+        <div class="control-gate__seal" aria-hidden="true">
+          <span class="seal-ring seal-ring--outer"></span>
+          <span class="seal-ring seal-ring--middle"></span>
+          <span class="seal-ring seal-ring--inner"></span>
+          <span class="seal-cross seal-cross--x"></span>
+          <span class="seal-cross seal-cross--y"></span>
+          <span class="seal-lock">{{ icon('lock') }}</span>
+          <span class="seal-label">LEVEL 04</span>
+          <span class="seal-blink"></span>
+        </div>
+
+        <div class="control-gate__copy">
+          <span class="mono-label">RESTRICTED DOOR / TEMPORAL FIREWALL</span>
+          <h3>THE CONSOLE<br>IS SEALED.</h3>
+          <p>The archive no longer opens this room with a public button. Four access fragments are hidden across the timeline. Find them, then open the Tempad terminal and submit each one with <code>UNLOCK &lt;fragment&gt;</code>.</p>
+
+          <div class="fragment-board" data-fragment-board aria-label="Access fragment progress">
+            {% for slot in range(1, 5) %}
+            {% set fragment = fragments_by_slot.get(slot) %}
+            <div class="fragment-slot{% if not fragment %} is-unassigned{% endif %}"
+                 data-fragment-slot="{{ slot }}"
+                 data-fragment-configured="{{ 'true' if fragment else 'false' }}">
+              <span class="fragment-slot__index">0{{ slot }}</span>
+              <span class="fragment-slot__code" data-fragment-code>— — — —</span>
+              <span class="fragment-slot__hint" data-fragment-hint>{{ fragment.section|upper ~ ' / HIDDEN' if fragment else 'UNASSIGNED' }}</span>
+            </div>
+            {% endfor %}
+          </div>
+
+          <div class="control-gate__readout">
+            <span class="mono-label" data-control-access-status>FIREWALL SEALED</span>
+            <span class="control-gate__count"><b data-fragment-count>00</b> / <span data-fragment-total>{{ "%02d"|format(access_fragments|length) }}</span> FRAGMENTS</span>
+          </div>
+          <div class="control-gate__bar" aria-hidden="true"><i data-fragment-bar></i></div>
+          <p class="control-gate__empty" data-fragment-empty {% if access_fragments %}hidden{% endif %}>No access fragments are currently published. The Tempad command <code>OPEN CONTROL</code> requests emergency access.</p>
+
+          <div class="control-gate__actions">
+            <button type="button" class="btn btn--primary" data-terminal-open>
+              <span>OPEN TEMPAD TERMINAL</span>{{ icon('terminal') }}
+            </button>
+            <button type="button" class="btn btn--ghost" data-terminal-run="scan">
+              <span>SCAN FOR FRAGMENTS</span>{{ icon('scan-line') }}
+            </button>
+          </div>
+
+          <p class="control-gate__protocol"><span class="mono-label">TEMPAD PROTOCOL</span> Open the terminal, then type <code>UNLOCK &lt;code&gt;</code>. Complete every published fragment to unlock this console.</p>
+        </div>
+      </div>
+
+      <div class="control-footer">
+        <span>ARCHIVE CONTROL SYSTEM // v2.2</span>
+        <span class="control-footer__line" aria-hidden="true"></span>
+        <span>TEMPAD LINK REQUIRED / NO DIRECT ACCESS</span>
+        <span class="control-footer__signal" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
+      </div>
+    </div>
+
+    <div class="control-unlocked" data-control-unlocked hidden>
+      <div class="control-access-banner" role="status">
+        <span><i class="status-dot"></i> TEMPORAL FIREWALL BYPASSED / CONTROL LINK OPEN</span>
+        <span>ACCESS VERIFIED VIA TEMPAD / TO RE-SEAL, TYPE <code>RELOCK</code></span>
+      </div>
+
+      <div class="control-shell" tabindex="-1" data-control-shell>
+        <div class="control-topbar">
+          <div class="control-topbar__brand">
+            <span class="control-glyph" aria-hidden="true">A</span>
+            <div>
+              <strong>ARCHIVE CONTROL SYSTEM</strong>
+              <span class="mono-label">TVA // PERSONAL TIMELINE INTERFACE</span>
+            </div>
+          </div>
+          <div class="control-topbar__meta">
+            <span><i class="status-dot"></i> ONLINE</span>
+            <span>ACCESS / TEMPAD VERIFIED</span>
+            <span id="control-clock">--:--:--</span>
+          </div>
+        </div>
+
+        <div class="control-grid">
+          <section class="control-panel control-panel--timeline" aria-labelledby="control-timeline-title">
+            <header class="control-panel__head">
+              <span class="mono-label">01 / TIMELINE MATRIX</span>
+              <span class="control-status"><i></i> ACTIVE</span>
+            </header>
+            <h3 id="control-timeline-title">ACHIEVEMENT COORDINATES</h3>
+            {% if first_achievement %}
+            <div class="timeline-readout" aria-live="polite">
+              <span class="timeline-readout__index" id="control-achievement-index">01 / {{ "%02d"|format(achievements|length) }}</span>
+              <strong id="control-achievement-title">{{ first_achievement.title }}</strong>
+              <span class="timeline-readout__position" id="control-achievement-position">{{ first_achievement.position }}{% if first_achievement.year %} / {{ first_achievement.year }}{% endif %}</span>
+            </div>
+            <div class="control-timeline-controls">
+              <button type="button" class="control-button" data-timeline-prev {% if achievements|length < 2 %}disabled{% endif %} aria-label="Previous achievement">{{ icon('arrow-left') }} PREV</button>
+              <div class="control-dots" data-timeline-dots aria-hidden="true">
+                {% for achievement in achievements %}
+                <span class="{{ 'is-active' if loop.first }}"></span>
+                {% endfor %}
+              </div>
+              <button type="button" class="control-button" data-timeline-next {% if achievements|length < 2 %}disabled{% endif %} aria-label="Next achievement">NEXT {{ icon('arrow-right') }}</button>
+            </div>
+            <div class="control-timeline-data" hidden>
+              {% for achievement in achievements %}
+              <span data-control-achievement data-title="{{ achievement.title }}" data-position="{{ achievement.position }}" data-year="{{ achievement.year }}"></span>
+              {% endfor %}
+            </div>
+            <div class="control-panel__foot"><span>DATA SOURCE / ACHIEVEMENTS TABLE</span><span>{{ "%02d"|format(achievements|length) }} RECORDS</span></div>
+            {% else %}
+            <p class="control-empty">NO TIMELINE COORDINATES LOADED.</p>
+            {% endif %}
+          </section>
+
+          <section class="control-panel control-panel--projects" aria-labelledby="control-projects-title">
+            <header class="control-panel__head">
+              <span class="mono-label">02 / PROJECT OBJECTS</span>
+              <span class="control-status"><i></i> LINKED</span>
+            </header>
+            <h3 id="control-projects-title">OBJECT INDEX</h3>
+            {% if projects %}
+            <ul class="control-project-list">
+              {% for project in projects[:5] %}
+              <li>
+                <button type="button" data-project-jump="project-{{ project.id }}">
+                  <span class="control-project-list__index">{{ "%02d"|format(loop.index) }}</span>
+                  <span class="control-project-list__name">{{ project.title }}</span>
+                  <span class="control-project-list__state">{{ 'FEATURED' if project.featured else 'ARCHIVED' }}</span>
+                  {{ icon('arrow-up-right') }}
+                </button>
+              </li>
+              {% endfor %}
+            </ul>
+            {% if site.show_projects %}
+            <a class="control-inline-link" href="#projects">OPEN FULL PROJECT ARCHIVE {{ icon('arrow-right') }}</a>
+            {% endif %}
+            {% else %}
+            <p class="control-empty">NO PROJECT OBJECTS REGISTERED.</p>
+            {% endif %}
+            <div class="control-panel__foot"><span>DATA SOURCE / PROJECTS TABLE</span><span>{{ "%02d"|format(projects|length) }} OBJECTS</span></div>
+          </section>
+
+          <section class="control-panel control-panel--gallery" aria-labelledby="control-gallery-title">
+            <header class="control-panel__head">
+              <span class="mono-label">03 / VISUAL ARRAY</span>
+              <span class="control-status"><i></i> {{ 'OPEN' if gallery_images else 'STANDBY' }}</span>
+            </header>
+            <h3 id="control-gallery-title">GALLERY MODULE</h3>
+            <div class="gallery-module">
+              <div class="gallery-module__counter">
+                <strong>{{ "%02d"|format(gallery_images|length) }}</strong>
+                <span>FRAMES<br>INDEXED</span>
+              </div>
+              <div class="gallery-module__bars" aria-hidden="true">
+                {% for category in categories %}
+                <span><i style="--height: {{ 20 + (category.images|length * 18) % 80 }}%"></i></span>
+                {% endfor %}
+              </div>
+            </div>
+            <div class="gallery-module__categories">
+              {% for category in categories %}
+              <button type="button" data-gallery-jump="{{ category.slug }}" {% if not category.images %}class="is-empty"{% endif %}>{{ category.name }} <span>{{ "%02d"|format(category.images|length) }}</span></button>
+              {% else %}
+              <span class="control-empty">NO CATEGORIES CONFIGURED.</span>
+              {% endfor %}
+            </div>
+            {% if site.show_gallery %}
+            <a class="control-inline-link" href="#gallery">OPEN VISUAL ARCHIVE {{ icon('arrow-right') }}</a>
+            {% endif %}
+            <div class="control-panel__foot"><span>DATA SOURCE / GALLERY TABLES</span><span>{{ "%02d"|format(categories|length) }} CHANNELS</span></div>
+          </section>
+
+          <section class="control-panel control-panel--documents" aria-labelledby="control-documents-title">
+            <header class="control-panel__head">
+              <span class="mono-label">04 / HIDDEN RECORDS</span>
+              <span class="control-status control-status--red"><i></i> CLASSIFIED</span>
+            </header>
+            <h3 id="control-documents-title">DOCUMENT VAULT</h3>
+            {% if enabled_eggs %}
+            <ul class="control-document-list">
+              {% for egg in enabled_eggs[:4] %}
+              <li>
+                <button type="button"
+                        data-secret-trigger
+                        data-egg-title="{{ egg.title }}"
+                        data-egg-label="{{ egg.interaction_type|upper }} / HIDDEN RECORD"
+                        data-egg-message="{{ egg.message }}"
+                        {% if egg.access_code and egg.access_slot %}data-egg-fragment="{{ egg.access_code }}" data-egg-slot="{{ egg.access_slot }}"{% endif %}>
+                  <span class="document-icon">{{ icon('file-text') }}</span>
+                  <span><strong>{{ egg.title }}</strong><em>{{ egg.section|upper }} / {{ egg.interaction_type|upper }}{% if egg.access_slot %} / FRAGMENT 0{{ egg.access_slot }}{% endif %}</em></span>
+                  {{ icon('arrow-up-right') }}
+                </button>
+              </li>
+              {% endfor %}
+            </ul>
+            {% else %}
+            <p class="control-empty">ALL HIDDEN RECORDS HAVE BEEN SEALED.</p>
+            {% endif %}
+            <button type="button" class="control-inline-link control-inline-link--button" data-terminal-open>OPEN SECRET TERMINAL {{ icon('terminal') }}</button>
+            <div class="control-panel__foot"><span>DATA SOURCE / EASTER EGGS TABLE</span><span>{{ "%02d"|format(enabled_eggs|length) }} FILES</span></div>
+          </section>
+
+          <section class="control-panel control-panel--status" aria-labelledby="control-status-title">
+            <header class="control-panel__head">
+              <span class="mono-label">05 / SYSTEM VITALS</span>
+              <span class="control-status"><i></i> STABLE</span>
+            </header>
+            <h3 id="control-status-title">LIVE VITALS</h3>
+            <div class="vitals-grid">
+              <div><span>PROJECTS</span><strong>{{ "%02d"|format(stats.projects) }}</strong><i style="--value: {{ [stats.projects * 12, 100]|min }}%"></i></div>
+              <div><span>ACHIEVEMENTS</span><strong>{{ "%02d"|format(stats.achievements) }}</strong><i style="--value: {{ [stats.achievements * 12, 100]|min }}%"></i></div>
+              <div><span>MEMBERS</span><strong>{{ "%02d"|format(stats.collaborators) }}</strong><i style="--value: {{ [stats.collaborators * 12, 100]|min }}%"></i></div>
+              <div><span>FRAMES</span><strong>{{ "%02d"|format(stats.gallery) }}</strong><i style="--value: {{ [stats.gallery * 8, 100]|min }}%"></i></div>
+            </div>
+            <div class="vitascope" aria-hidden="true">
+              <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+            </div>
+            <div class="status-readout">
+              <span>ARCHIVE INTEGRITY</span>
+              <strong id="control-integrity">99.8%</strong>
+              <button type="button" class="control-button control-button--small" data-recalibrate>RECALIBRATE</button>
+            </div>
+            <div class="control-panel__foot"><span>DATA SOURCE / SQLITE</span><span id="control-last-calibration">SYNC / LIVE</span></div>
+          </section>
+
+          <section class="control-panel control-panel--actions" aria-labelledby="control-actions-title">
+            <header class="control-panel__head">
+              <span class="mono-label">06 / ACTION ARRAY</span>
+              <span class="control-status"><i></i> READY</span>
+            </header>
+            <h3 id="control-actions-title">AVAILABLE ACTIONS</h3>
+            <div class="action-grid">
+              <button type="button" class="action-button" data-mode-toggle>
+                {{ icon('aperture') }}<span>TOGGLE<br>GREEN MODE</span>
+              </button>
+              <button type="button" class="action-button" data-terminal-open>
+                {{ icon('terminal') }}<span>SECRET<br>TERMINAL</span>
+              </button>
+              <button type="button" class="action-button" data-scroll-home>
+                {{ icon('arrow-up') }}<span>RETURN TO<br>ORIGIN</span>
+              </button>
+              {% if site.show_contact %}
+              <a class="action-button" href="#contact">
+                {{ icon('send') }}<span>SEND<br>SIGNAL</span>
+              </a>
+              {% endif %}
+            </div>
+            <div class="keyboard-hint">
+              <span class="mono-label">KEYBOARD BACKDOOR</span>
+              <div><kbd>CTRL</kbd><kbd>SHIFT</kbd><kbd>A</kbd></div>
+            </div>
+            <div class="control-panel__foot"><span>TEMPAD LINK VERIFIED</span><span>ALL ACTIONS LIVE</span></div>
+          </section>
+        </div>
+
+        <div class="control-footer">
+          <span>ARCHIVE CONTROL SYSTEM // v2.2</span>
+          <span class="control-footer__line" aria-hidden="true"></span>
+          <span>ANNAMALAI / TIMELINE A-001</span>
+          <span class="control-footer__signal" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-float-zone section-float-zone--right">
+      {{ egg_nodes(eggs_by_section.get('control', [])) }}
+    </div>
+  </div>
+</section>

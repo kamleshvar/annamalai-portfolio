@@ -1,0 +1,132 @@
+{% from "macros/ui.html" import icon %}
+{# Shared admin form and content primitives. #}
+
+{% macro field(field, label=None, hint=None, wide=False, placeholder=None, autocomplete=None) -%}
+<div class="admin-field{% if wide %} admin-field--wide{% endif %}{% if field.errors %} has-error{% endif %}">
+  <label for="{{ field.id }}">{{ label or field.label.text }}{% if field.flags.required %}<em aria-hidden="true">*</em>{% endif %}</label>
+  {% if autocomplete %}
+    {{ field(class="admin-input", placeholder=placeholder or "", autocomplete=autocomplete) }}
+  {% else %}
+    {{ field(class="admin-input", placeholder=placeholder or "") }}
+  {% endif %}
+  {% if hint %}<p class="admin-field__hint">{{ hint }}</p>{% endif %}
+  {% if field.description %}<p class="admin-field__hint">{{ field.description }}</p>{% endif %}
+  {% for error in field.errors %}<p class="admin-field__error">{{ error }}</p>{% endfor %}
+</div>
+{%- endmacro %}
+
+{% macro textarea(field, label=None, hint=None, wide=False, rows=5, placeholder=None) -%}
+<div class="admin-field{% if wide %} admin-field--wide{% endif %}{% if field.errors %} has-error{% endif %}">
+  <label for="{{ field.id }}">{{ label or field.label.text }}{% if field.flags.required %}<em aria-hidden="true">*</em>{% endif %}</label>
+  {{ field(class="admin-input admin-textarea", rows=rows, placeholder=placeholder or "") }}
+  {% if hint %}<p class="admin-field__hint">{{ hint }}</p>{% endif %}
+  {% for error in field.errors %}<p class="admin-field__error">{{ error }}</p>{% endfor %}
+</div>
+{%- endmacro %}
+
+{% macro select_field(field, label=None, hint=None, wide=False) -%}
+<div class="admin-field{% if wide %} admin-field--wide{% endif %}{% if field.errors %} has-error{% endif %}">
+  <label for="{{ field.id }}">{{ label or field.label.text }}{% if field.flags.required %}<em aria-hidden="true">*</em>{% endif %}</label>
+  {{ field(class="admin-input admin-select") }}
+  {% if hint %}<p class="admin-field__hint">{{ hint }}</p>{% endif %}
+  {% for error in field.errors %}<p class="admin-field__error">{{ error }}</p>{% endfor %}
+</div>
+{%- endmacro %}
+
+{% macro checkbox(field, hint=None) -%}
+<label class="admin-checkbox">
+  {{ field() }}
+  <span class="admin-checkbox__mark" aria-hidden="true"></span>
+  <span class="admin-checkbox__copy">
+    <strong>{{ field.label.text }}</strong>
+    {% if hint %}<em>{{ hint }}</em>{% endif %}
+  </span>
+</label>
+{%- endmacro %}
+
+{% macro color_field(field) -%}
+<div class="admin-field admin-field--color{% if field.errors %} has-error{% endif %}">
+  <label for="{{ field.id }}">{{ field.label.text }}</label>
+  <div class="admin-color-control">
+    <input type="color" value="{{ field.data or '#000000' }}" data-color-picker data-target="{{ field.id }}" aria-label="Choose {{ field.label.text }} color">
+    {{ field(class="admin-input") }}
+  </div>
+  {% for error in field.errors %}<p class="admin-field__error">{{ error }}</p>{% endfor %}
+</div>
+{%- endmacro %}
+
+{% macro file_field(field, label=None, hint=None, current_url=None, accept='image/jpeg,image/jpg,image/png,image/webp') -%}
+<div class="admin-field{% if field.errors %} has-error{% endif %}">
+  <label for="{{ field.id }}">{{ label or field.label.text }}</label>
+  <div class="admin-upload">
+    <div class="admin-media-preview">
+      <img {% if current_url %}src="{{ current_url }}"{% endif %} alt="{{ field.label.text }} preview" {% if not current_url %}hidden{% endif %} data-upload-preview>
+      <span class="admin-media-preview__empty" {% if current_url %}hidden{% endif %}>NO IMAGE LOADED</span>
+    </div>
+    {{ field(class="admin-file-input", accept=accept) }}
+    <p class="admin-file-hint">JPG, JPEG, PNG or WEBP. Large images are resized automatically.</p>
+    {% if hint %}<p class="admin-field__hint">{{ hint }}</p>{% endif %}
+  </div>
+  {% for error in field.errors %}<p class="admin-field__error">{{ error }}</p>{% endfor %}
+</div>
+{%- endmacro %}
+
+{% macro media_thumb(url, alt, label=None) -%}
+<div class="admin-thumb">
+  {% if url %}
+  <img src="{{ url }}" alt="{{ alt }}" loading="lazy" decoding="async">
+  {% else %}
+  <span class="admin-thumb__empty" aria-hidden="true">{{ icon('image') }}</span>
+  {% endif %}
+  {% if label %}<span>{{ label }}</span>{% endif %}
+</div>
+{%- endmacro %}
+
+{% macro form_feedback(form) -%}
+{% if form.errors %}
+<div class="admin-alert admin-alert--error" role="alert">
+  <strong>Check the record before saving.</strong>
+  <ul>
+    {% for field_name, errors in form.errors.items() %}
+    <li><span>{{ field_name|replace('_', ' ')|title }}:</span> {{ errors|join(' ') }}</li>
+    {% endfor %}
+  </ul>
+</div>
+{% endif %}
+{%- endmacro %}
+
+{% macro confirm_form(action, message, label='DELETE', class_name='admin-btn admin-btn--danger admin-btn--sm', icon_name='trash-2') -%}
+<form action="{{ action }}" method="post" class="admin-inline-form" data-confirm="{{ message }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <button type="submit" class="{{ class_name }}">{{ icon(icon_name) }}<span>{{ label }}</span></button>
+</form>
+{%- endmacro %}
+
+{% macro move_form(action, label, disabled=False) -%}
+<form action="{{ action }}" method="post" class="admin-inline-form">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <button type="submit" class="admin-icon-btn" aria-label="{{ label }}" title="{{ label }}" {% if disabled %}disabled{% endif %}>{{ icon('chevron-up') }}</button>
+</form>
+{%- endmacro %}
+
+{% macro move_down_form(action, label, disabled=False) -%}
+<form action="{{ action }}" method="post" class="admin-inline-form">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <button type="submit" class="admin-icon-btn" aria-label="{{ label }}" title="{{ label }}" {% if disabled %}disabled{% endif %}>{{ icon('chevron-down') }}</button>
+</form>
+{%- endmacro %}
+
+{% macro empty_state(title, copy, action_url=None, action_label=None, icon_name='archive') -%}
+<div class="admin-empty">
+  <span class="admin-empty__icon">{{ icon(icon_name) }}</span>
+  <h2>{{ title }}</h2>
+  <p>{{ copy }}</p>
+  {% if action_url and action_label %}
+  <a class="admin-btn admin-btn--primary" href="{{ action_url }}">{{ icon('plus') }}<span>{{ action_label }}</span></a>
+  {% endif %}
+</div>
+{%- endmacro %}
+
+{% macro saved_media(url, alt) -%}
+{% if url %}<span class="admin-media-badge">{{ icon('image') }} RECORD ATTACHED</span>{% else %}<span class="admin-media-badge admin-media-badge--empty">{{ icon('image-off') }} NO IMAGE</span>{% endif %}
+{%- endmacro %}

@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}{{ code }} / {{ error_title }} — {{ site.site_title }}{% endblock %}
+
+{% block content %}
+<section class="error-page">
+  <div class="error-page__noise" aria-hidden="true"></div>
+  <div class="container error-page__inner">
+    <span class="mono-label">TEMPORAL FAULT / {{ code }}</span>
+    <div class="error-page__code">{{ code }}</div>
+    <h1>{{ error_title }}</h1>
+    <p>{{ error_message }}</p>
+    <div class="error-page__actions">
+      <a class="btn btn--primary" href="{{ url_for('main.index') }}">RETURN TO THE ARCHIVE</a>
+      <a class="text-link" href="{{ url_for('main.index') }}#contact">REPORT A FAULT</a>
+    </div>
+    <div class="error-page__meta">
+      <span>ARCHIVE INTEGRITY / PRESERVED</span>
+      <span>TIMELINE / STILL ACTIVE</span>
+    </div>
+  </div>
+</section>
+{% endblock %}

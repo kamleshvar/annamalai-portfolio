@@ -1,0 +1,58 @@
+{% extends "admin/base.html" %}
+{% from "macros/ui.html" import icon %}
+{% from "admin/_macros.html" import confirm_form, move_form, move_down_form, empty_state %}
+
+{% block page_title %}Collaborators{% endblock %}
+
+{% block content %}
+<header class="admin-page-head">
+  <div>
+    <span class="admin-kicker">CONSTELLATION REGISTRY / {{ "%02d"|format(collaborators|length) }}</span>
+    <h1>COLLABORATORS<span aria-hidden="true">.</span></h1>
+    <p>The people in the timeline. These records power the public People section.</p>
+  </div>
+  <div class="admin-page-actions">
+    <a class="admin-btn admin-btn--ghost" href="{{ url_for('main.index') }}#people" target="_blank" rel="noopener">{{ icon('external-link') }}<span>VIEW PEOPLE</span></a>
+    <a class="admin-btn admin-btn--primary" href="{{ url_for('admin.collaborator_new') }}">{{ icon('plus') }}<span>NEW COLLABORATOR</span></a>
+  </div>
+</header>
+
+<div class="admin-index-bar">
+  <span><i class="admin-live-dot"></i> {{ collaborators|length }} CONTACTS</span>
+  <span>PORTRAITS / {{ collaborators|selectattr('photo')|list|length }}</span>
+  <span>EXTERNAL LINKS / {{ collaborators|selectattr('website')|list|length }}</span>
+</div>
+
+{% if collaborators %}
+<div class="admin-people-grid">
+  {% for person in collaborators %}
+  <article class="admin-person-card">
+    <div class="admin-person-card__media">
+      {% if person.photo %}
+      <img src="{{ url_for('main.uploaded_file', filename=person.photo) }}" alt="Portrait of {{ person.name }}" loading="lazy" decoding="async">
+      {% else %}
+      <span class="admin-person-card__monogram">{{ person.initials }}</span>
+      {% endif %}
+      <span class="admin-person-card__index">{{ "%02d"|format(loop.index) }}</span>
+    </div>
+    <div class="admin-person-card__body">
+      <span class="admin-kicker">TIMELINE CONTACT / {{ "%02d"|format(loop.index) }}</span>
+      <h2>{{ person.name }}</h2>
+      {% if person.description %}<p>{{ person.description|truncate(140, True, '…') }}</p>{% else %}<p class="admin-muted">No archive note recorded.</p>{% endif %}
+      {% if person.website %}<a href="{{ person.website }}" target="_blank" rel="noopener" class="admin-text-link">{{ person.website|replace('https://', '')|replace('http://', '')|trim('/')|truncate(32, True, '…') }} {{ icon('arrow-up-right') }}</a>{% else %}<span class="admin-muted admin-small">NO EXTERNAL COORDINATE</span>{% endif %}
+      <div class="admin-person-card__actions">
+        <div class="admin-move-group" aria-label="Reorder {{ person.name }}">
+          {{ move_form(url_for('admin.collaborator_move', collaborator_id=person.id, direction='up'), 'Move ' ~ person.name ~ ' up', loop.first) }}
+          {{ move_down_form(url_for('admin.collaborator_move', collaborator_id=person.id, direction='down'), 'Move ' ~ person.name ~ ' down', loop.last) }}
+        </div>
+        <a class="admin-btn admin-btn--ghost admin-btn--sm" href="{{ url_for('admin.collaborator_edit', collaborator_id=person.id) }}">{{ icon('pencil') }} EDIT</a>
+        {{ confirm_form(url_for('admin.collaborator_delete', collaborator_id=person.id), 'Delete the collaborator record “' ~ person.name ~ '” and their photograph? This cannot be undone.', 'DELETE') }}
+      </div>
+    </div>
+  </article>
+  {% endfor %}
+</div>
+{% else %}
+{{ empty_state('NO COLLABORATORS RECORDED.', 'The People section will show its empty state until a contact is added.', url_for('admin.collaborator_new'), 'ADD FIRST COLLABORATOR', 'users-round') }}
+{% endif %}
+{% endblock %}
