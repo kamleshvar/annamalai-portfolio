@@ -19,7 +19,7 @@ if __name__ == "__main__":
     debug = bool(app.config.get("DEBUG", False))
     app.run(
         host=os.getenv("HOST", "127.0.0.1"),
-        port=port,
+        port=5015,
         debug=debug,
         use_reloader=debug,
     )
